@@ -2,8 +2,8 @@ let rawData = [];
 let currentMode = 'high'; // 'high' | 'junior' | 'teacher' | 'room'
 let selectedItem = '';
 
-const searchInput = document.getElementById('search-input');
-const itemListEl = document.getElementById('item-list');
+const inputEl = document.getElementById('item-search');
+const datalistEl = document.getElementById('item-options');
 
 // 初始化
 fetch('schedule.json?v=3')
@@ -11,7 +11,7 @@ fetch('schedule.json?v=3')
   .then(data => {
     rawData = data;
     updateStats();
-    renderList();
+    populateSelect();
   });
 
 // 頁籤切換
@@ -21,19 +21,33 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     e.target.classList.add('active');
     currentMode = e.target.dataset.mode;
     selectedItem = '';
-    searchInput.value = ''; // 清空搜尋關鍵字
-    
-    // 更新搜尋框提示文字
-    searchInput.placeholder = `搜尋${getModeLabel()}姓名或代碼...`;
-
-    renderList();
+    inputEl.value = '';
+    inputEl.placeholder = `-- 請搜尋或選擇 ${getModeLabel()} --`;
+    populateSelect();
     renderSchedule();
   });
 });
 
-// 關鍵字搜尋過濾事件
-searchInput.addEventListener('input', () => {
-  renderList();
+// 輸入或選擇變更事件
+inputEl.addEventListener('input', (e) => {
+  const val = e.target.value;
+  const options = getOptions();
+  
+  // 檢查輸入值是否匹配選項（支援選單點選，或輸入名稱/代碼匹配）
+  const match = options.find(opt => opt.value === val || opt.label === val || (opt.code && val.includes(opt.code)));
+  
+  if (match) {
+    selectedItem = match.value;
+    renderSchedule();
+  } else if (val === '') {
+    selectedItem = '';
+    renderSchedule();
+  }
+});
+
+// 點擊清空輸入框方便重新搜尋
+inputEl.addEventListener('focus', () => {
+  inputEl.value = '';
 });
 
 // 統計全校資料
@@ -54,14 +68,14 @@ function sortClassNames(classList) {
   });
 }
 
-// 取得當前模式的選項清單
+// 取得當前 Mode 下的選項清單
 function getOptions() {
   if (currentMode === 'high') {
     const set = new Set(rawData.filter(d => d.class_name && d.class_name.startsWith('高')).map(d => d.class_name));
-    return sortClassNames(Array.from(set)).map(name => ({ label: name, value: name, code: '' }));
+    return sortClassNames(Array.from(set)).map(name => ({ label: name, value: name }));
   } else if (currentMode === 'junior') {
     const set = new Set(rawData.filter(d => d.class_name && d.class_name.startsWith('國')).map(d => d.class_name));
-    return sortClassNames(Array.from(set)).map(name => ({ label: name, value: name, code: '' }));
+    return sortClassNames(Array.from(set)).map(name => ({ label: name, value: name }));
   } else if (currentMode === 'teacher') {
     const teacherMap = new Map();
     rawData.forEach(d => {
@@ -76,55 +90,28 @@ function getOptions() {
 
     const sortedTeachers = Array.from(teacherMap.values()).sort((a, b) => a.order - b.order);
     return sortedTeachers.map(t => ({
-      label: t.name,
+      label: `${t.name} ${t.code ? '(' + t.code + ')' : ''}`,
       value: t.name,
       code: t.code
     }));
   } else if (currentMode === 'room') {
     const set = new Set(rawData.map(d => d.room).filter(Boolean));
     const sortedRooms = Array.from(set).sort();
-    return sortedRooms.map(room => ({ label: room, value: room, code: '' }));
+    return sortedRooms.map(room => ({ label: room, value: room }));
   }
   return [];
 }
 
-// 渲染左側搜尋清單卡片
-function renderList() {
-  itemListEl.innerHTML = '';
+// 填入下拉搜尋清單
+function populateSelect() {
+  datalistEl.innerHTML = '';
   const options = getOptions();
-  const keyword = searchInput.value.trim().toLowerCase();
 
-  // 根據搜尋關鍵字過濾選項 (姓名或代碼)
-  const filteredOptions = options.filter(opt => {
-    const matchLabel = opt.label.toLowerCase().includes(keyword);
-    const matchCode = opt.code ? opt.code.toLowerCase().includes(keyword) : false;
-    return matchLabel || matchCode;
-  });
-
-  if (filteredOptions.length === 0) {
-    itemListEl.innerHTML = `<li class="no-data">查無結果</li>`;
-    return;
-  }
-
-  filteredOptions.forEach(opt => {
-    const li = document.createElement('li');
-    li.className = 'item-node';
-    if (opt.value === selectedItem) li.classList.add('active');
-
-    li.innerHTML = `
-      <span class="item-name">${opt.label}</span>
-      ${opt.code ? `<span class="item-code">${opt.code}</span>` : ''}
-    `;
-
-    li.addEventListener('click', () => {
-      selectedItem = opt.value;
-      // 更新高亮狀態
-      document.querySelectorAll('.item-node').forEach(el => el.classList.remove('active'));
-      li.classList.add('active');
-      renderSchedule();
-    });
-
-    itemListEl.appendChild(li);
+  options.forEach(opt => {
+    const optionEl = document.createElement('option');
+    optionEl.value = opt.value;
+    optionEl.label = opt.label;
+    datalistEl.appendChild(optionEl);
   });
 }
 
@@ -204,7 +191,7 @@ function renderSchedule() {
   }
 }
 
-// 點擊課表內超連結直接跳轉
+// 點擊課表內連結跳轉
 function jumpTo(mode, target) {
   currentMode = mode;
   selectedItem = target;
@@ -213,7 +200,7 @@ function jumpTo(mode, target) {
     b.classList.toggle('active', b.dataset.mode === mode);
   });
 
-  searchInput.value = '';
-  renderList();
+  inputEl.value = target;
+  populateSelect();
   renderSchedule();
 }
