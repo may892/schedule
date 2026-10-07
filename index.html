@@ -3,280 +3,72 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HLHS 課表查詢系統</title>
-
-  <!-- 引入 Select2 CSS（讓選單具備搜尋功能） -->
+  <title>學校課表查詢系統</title>
+  <!-- 引入 Select2 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    }
-
-    body {
-      background-color: #f8f9fa;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
-
-    /* 頂部 Header */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: bold;
-      font-size: 18px;
-    }
-
-    .brand-badge {
-      background-color: #1a2530;
-      color: #fff;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-    }
-
-    .stats {
-      font-size: 13px;
-      color: #888;
-    }
-
-    /* 主卡片容器 */
-    .card {
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-
-    /* 頁籤 Tab Nav */
-    .tab-nav {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 10px 0;
-      text-align: center;
-      background: #edf2f7;
-      border: 1px solid #cbd5e0;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      color: #4a5568;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-
-    .tab-btn.active {
-      background: #1a2530; /* 截圖中的深藍/黑色 */
-      color: #fff;
-      border-color: #1a2530;
-    }
-
-    /* 下拉選單區域 */
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    /* 原生選單風格 */
-    .native-select {
-      width: 100%;
-      padding: 8px 12px;
-      border: 1px solid #cbd5e0;
-      border-radius: 6px;
-      font-size: 14px;
-      outline: none;
-      background-color: #fff;
-    }
-
-    /* 課表表格區塊 */
-    .schedule-card {
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-
-    .schedule-title {
-      text-align: center;
-      font-size: 16px;
-      font-weight: bold;
-      margin-bottom: 15px;
-      color: #2d3748;
-    }
-
-    .schedule-table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: center;
-      font-size: 14px;
-    }
-
-    .schedule-table th, .schedule-table td {
-      border: 1px solid #e2e8f0;
-      padding: 10px;
-    }
-
-    .schedule-table th {
-      background-color: #f7fafc;
-      color: #718096;
-      font-weight: normal;
-    }
-
-    .tip-text {
-      text-align: right;
-      font-size: 12px;
-      color: #718096;
-      margin-top: 10px;
-    }
-
-    /* 微調 Select2 樣式以完全對齊您原本的 UI */
-    .select2-container {
-      width: 100% !important;
-    }
-    .select2-container--default .select2-selection--single {
-      height: 38px;
-      border: 1px solid #cbd5e0;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-    }
-    .select2-container--default .select2-selection--single .select2-selection__arrow {
-      height: 36px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
+  <div class="app-container">
+    <!-- 頂部標頭 -->
+    <header class="header">
+      <div class="logo-title">
+        <span class="badge">HLHS</span>
+        <h1>課表查詢系統</h1>
+      </div>
+      <div class="info-stats" id="stats-info">載入中...</div>
+    </header>
 
-  <!-- 頁首 -->
-  <div class="header">
-    <div class="brand">
-      <span class="brand-badge">HLHS</span>
-      <span>課表查詢系統</span>
+    <!-- 頂部控制面板 (Tab + 下拉選單) -->
+    <div class="control-panel">
+      <nav class="tab-bar">
+        <button class="tab-btn active" data-mode="high">高中班級</button>
+        <button class="tab-btn" data-mode="junior">國中班級</button>
+        <button class="tab-btn" data-mode="teacher">依教師</button>
+        <button class="tab-btn" data-mode="room">依教室</button>
+      </nav>
+
+      <div class="select-wrapper">
+        <select id="item-select" class="dropdown-select">
+          <option value="">-- 請選擇 --</option>
+        </select>
+      </div>
     </div>
-    <div class="stats">
-      收錄 39 個班級 · 110 位教師
-    </div>
+
+    <!-- 課表內容區 -->
+    <main class="content">
+      <div class="content-header">
+        <h2 id="current-title">請選擇查詢項目</h2>
+      </div>
+
+      <div class="table-scroll-container">
+        <table class="schedule-table">
+          <thead>
+            <tr>
+              <th class="col-period">節次</th>
+              <th>週一</th>
+              <th>週二</th>
+              <th>週三</th>
+              <th>週四</th>
+              <th>週五</th>
+            </tr>
+          </thead>
+          <tbody id="schedule-body">
+            <!-- 動態生成 1~8 節 -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="footer-note">
+        💡 點選課表內加底線的<span class="highlight">教師/班級/教室</span>可直接切換查詢
+      </div>
+    </main>
   </div>
 
-  <!-- 選單切換區卡片 -->
-  <div class="card">
-    <div class="tab-nav">
-      <div class="tab-btn active" onclick="switchTab('senior')">高中班級</div>
-      <div class="tab-btn" onclick="switchTab('junior')">國中班級</div>
-      <div class="tab-btn" onclick="switchTab('teacher')">依教師</div>
-      <div class="tab-btn" onclick="switchTab('room')">依教室</div>
-    </div>
-
-    <!-- 1. 高中班級選單 (一般下拉) -->
-    <div id="tab-senior" class="tab-content active">
-      <select class="native-select">
-        <option value="">-- 請選擇 高中班級 --</option>
-        <option value="301">高三甲</option>
-        <option value="302">高三乙</option>
-      </select>
-    </div>
-
-    <!-- 2. 國中班級選單 -->
-    <div id="tab-junior" class="tab-content">
-      <select class="native-select">
-        <option value="">-- 請選擇 國中班級 --</option>
-        <option value="101">國一甲</option>
-      </select>
-    </div>
-
-    <!-- 3. 依教師選單 (帶有關鍵字搜尋功能) -->
-    <div id="tab-teacher" class="tab-content">
-      <select id="teacherSelect">
-        <option value="">-- 請選擇或輸入教師姓名搜尋 --</option>
-        <option value="T01">張小明 (資訊)</option>
-        <option value="T02">李美麗 (英文)</option>
-        <option value="T03">王大同 (數學)</option>
-        <option value="T04">陳哲豪 (物理)</option>
-        <option value="T05">黃智勝 (化學)</option>
-      </select>
-    </div>
-
-    <!-- 4. 依教室選單 -->
-    <div id="tab-room" class="tab-content">
-      <select class="native-select">
-        <option value="">-- 請選擇 教室 --</option>
-        <option value="R101">電腦教室一</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- 課表卡片區 -->
-  <div class="schedule-card">
-    <div class="schedule-title">請選擇查詢項目</div>
-    <table class="schedule-table">
-      <thead>
-        <tr>
-          <th>節次</th>
-          <th>週一</th>
-          <th>週二</th>
-          <th>週三</th>
-          <th>週四</th>
-          <th>週五</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td colspan="6" style="color: #a0aec0; padding: 40px 0;">請由上方選單選擇類別與項目...</td></tr>
-      </tbody>
-    </table>
-    <div class="tip-text">
-      💡 點選課表內加底線的<span style="color:#0056b3;">教師/班級/教室</span>可直接切換查詢
-    </div>
-  </div>
-
-  <!-- 引入 jQuery 與 Select2 JS -->
+  <!-- 引入 jQuery 與 Select2 JS (讓 #item-select 支援關鍵字搜尋) -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-  <script>
-    // 頁籤切換邏輯
-    function switchTab(tabName) {
-      // 切換按鈕樣式
-      $('.tab-btn').removeClass('active');
-      $(event.target).addClass('active');
-
-      // 切換選單內容
-      $('.tab-content').removeClass('active');
-      $('#tab-' + tabName).addClass('active');
-    }
-
-    // 初始化 Select2 (替換依教師的下拉選單)
-    $(document).ready(function() {
-      $('#teacherSelect').select2({
-        placeholder: "-- 請選擇或輸入教師姓名搜尋 --",
-        allowClear: true,
-        language: {
-          noResults: function() {
-            return "查無此教師";
-          }
-        }
-      });
-    });
-  </script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
