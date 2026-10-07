@@ -3,396 +3,278 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>班級與教師進階選單</title>
+  <title>HLHS 課表查詢系統</title>
+
+  <!-- 引入 Select2 CSS（讓選單具備搜尋功能） -->
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
   <style>
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
     body {
-      font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
-      padding: 40px 20px;
-      background-color: #f5f7fa;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .form-group {
-      margin-bottom: 25px;
-      width: 100%;
-      max-width: 360px;
-    }
-
-    .group-label {
-      font-weight: bold;
-      margin-bottom: 8px;
-      color: #333;
-      display: block;
-    }
-
-    /* 主下拉按鈕列（深藍背景 + 左右箭頭） */
-    .dropdown-control {
-      position: relative;
-      display: flex;
-      align-items: center;
-      background-color: #0056b3; /* 截圖中的深藍色 */
-      color: #ffffff;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-      user-select: none;
-    }
-
-    .nav-btn {
-      padding: 10px 14px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 14px;
-      transition: background 0.2s;
-    }
-
-    .nav-btn:hover {
-      background-color: rgba(255, 255, 255, 0.15);
-    }
-
-    .nav-btn.prev {
-      border-radius: 6px 0 0 6px;
-    }
-
-    .nav-btn.next {
-      border-radius: 0 6px 6px 0;
-    }
-
-    .selected-display {
-      flex: 1;
-      text-align: center;
-      padding: 10px 8px;
-      font-weight: bold;
-      font-size: 15px;
-      cursor: pointer;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .arrow-icon {
-      font-size: 10px;
-      transition: transform 0.2s;
-    }
-
-    .dropdown-control.open .arrow-icon {
-      transform: rotate(180deg);
-    }
-
-    /* 浮動下拉選單面板 */
-    .dropdown-panel {
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 0;
-      width: 100%;
-      background-color: #ffffff;
-      border: 1px solid #dcdfe6;
-      border-radius: 6px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-      z-index: 1000;
-      padding: 10px;
-      box-sizing: border-box;
-      display: none;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 20px;
       color: #333;
     }
 
-    .dropdown-control.open .dropdown-panel {
-      display: block;
+    /* 頂部 Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
     }
 
-    /* 關鍵字搜尋輸入框 */
-    .search-box {
-      position: relative;
-      margin-bottom: 8px;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: bold;
+      font-size: 18px;
     }
 
-    .search-input {
-      width: 100%;
-      padding: 8px 30px 8px 10px;
-      border: 1px solid #ccc;
+    .brand-badge {
+      background-color: #1a2530;
+      color: #fff;
+      padding: 3px 8px;
       border-radius: 4px;
-      font-size: 14px;
-      box-sizing: border-box;
-      outline: none;
+      font-size: 12px;
     }
 
-    .search-input:focus {
-      border-color: #0056b3;
-    }
-
-    .search-icon {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #0056b3;
-      font-size: 14px;
-      pointer-events: none;
-    }
-
-    /* 群組標頭 */
-    .panel-header {
+    .stats {
       font-size: 13px;
-      color: #666;
-      background-color: #f2f2f2;
-      padding: 6px 10px;
-      border-radius: 4px;
-      margin-bottom: 6px;
+      color: #888;
+    }
+
+    /* 主卡片容器 */
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    /* 頁籤 Tab Nav */
+    .tab-nav {
       display: flex;
-      align-items: center;
-      gap: 6px;
-      font-weight: bold;
+      gap: 10px;
+      margin-bottom: 15px;
     }
 
-    /* 選項列表 */
-    .options-list {
-      max-height: 200px;
-      overflow-y: auto;
-    }
-
-    .option-item {
-      display: flex;
-      align-items: center;
-      padding: 8px 10px;
-      cursor: pointer;
-      border-radius: 4px;
-      font-size: 15px;
-      transition: background 0.15s;
-    }
-
-    .option-item:hover {
-      background-color: #f5f7fa;
-    }
-
-    /* 被選中的項目高亮（藍底白字） */
-    .option-item.selected {
-      background-color: #0056b3;
-      color: #ffffff;
-    }
-
-    /* Radio 自訂樣式 */
-    .option-item input[type="radio"] {
-      margin-right: 10px;
-      accent-color: #0056b3;
-      cursor: pointer;
-    }
-
-    .option-item.selected input[type="radio"] {
-      accent-color: #ffffff;
-    }
-
-    .no-data {
-      padding: 10px;
+    .tab-btn {
+      flex: 1;
+      padding: 10px 0;
       text-align: center;
-      color: #999;
+      background: #edf2f7;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #4a5568;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: #1a2530; /* 截圖中的深藍/黑色 */
+      color: #fff;
+      border-color: #1a2530;
+    }
+
+    /* 下拉選單區域 */
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* 原生選單風格 */
+    .native-select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+      background-color: #fff;
+    }
+
+    /* 課表表格區塊 */
+    .schedule-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .schedule-title {
+      text-align: center;
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #2d3748;
+    }
+
+    .schedule-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
       font-size: 14px;
     }
 
-    /* 結果顯示 */
-    .result-box {
-      margin-top: 20px;
-      padding: 12px 20px;
-      background: #eef6ff;
-      border-left: 4px solid #0056b3;
-      border-radius: 4px;
-      width: 100%;
-      max-width: 360px;
-      box-sizing: border-box;
+    .schedule-table th, .schedule-table td {
+      border: 1px solid #e2e8f0;
+      padding: 10px;
+    }
+
+    .schedule-table th {
+      background-color: #f7fafc;
+      color: #718096;
+      font-weight: normal;
+    }
+
+    .tip-text {
+      text-align: right;
+      font-size: 12px;
+      color: #718096;
+      margin-top: 10px;
+    }
+
+    /* 微調 Select2 樣式以完全對齊您原本的 UI */
+    .select2-container {
+      width: 100% !important;
+    }
+    .select2-container--default .select2-selection--single {
+      height: 38px;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+      height: 36px;
     }
   </style>
 </head>
 <body>
 
-  <!-- 1. 班級選單 -->
-  <div class="form-group">
-    <span class="group-label">班級選擇：</span>
-    <div class="dropdown-control" id="classDropdown">
-      <div class="nav-btn prev" title="上一個">❮</div>
-      <div class="selected-display">
-        <span class="display-text">請選擇班級</span>
-        <span class="arrow-icon">▼</span>
-      </div>
-      <div class="nav-btn next" title="下一個">❯</div>
-
-      <!-- 下拉面板 -->
-      <div class="dropdown-panel">
-        <div class="search-box">
-          <input type="text" class="search-input" placeholder="關鍵字搜尋..." autocomplete="off">
-          <span class="search-icon">🔍</span>
-        </div>
-        <div class="panel-header">
-          <span>📋 群組清單</span>
-        </div>
-        <div class="options-list"></div>
-      </div>
+  <!-- 頁首 -->
+  <div class="header">
+    <div class="brand">
+      <span class="brand-badge">HLHS</span>
+      <span>課表查詢系統</span>
+    </div>
+    <div class="stats">
+      收錄 39 個班級 · 110 位教師
     </div>
   </div>
 
-  <!-- 2. 教師選單 -->
-  <div class="form-group">
-    <span class="group-label">教師選擇：</span>
-    <div class="dropdown-control" id="teacherDropdown">
-      <div class="nav-btn prev" title="上一個">❮</div>
-      <div class="selected-display">
-        <span class="display-text">請選擇教師</span>
-        <span class="arrow-icon">▼</span>
-      </div>
-      <div class="nav-btn next" title="下一個">❯</div>
+  <!-- 選單切換區卡片 -->
+  <div class="card">
+    <div class="tab-nav">
+      <div class="tab-btn active" onclick="switchTab('senior')">高中班級</div>
+      <div class="tab-btn" onclick="switchTab('junior')">國中班級</div>
+      <div class="tab-btn" onclick="switchTab('teacher')">依教師</div>
+      <div class="tab-btn" onclick="switchTab('room')">依教室</div>
+    </div>
 
-      <!-- 下拉面板 -->
-      <div class="dropdown-panel">
-        <div class="search-box">
-          <input type="text" class="search-input" placeholder="關鍵字搜尋..." autocomplete="off">
-          <span class="search-icon">🔍</span>
-        </div>
-        <div class="panel-header">
-          <span>📋 教師清單</span>
-        </div>
-        <div class="options-list"></div>
-      </div>
+    <!-- 1. 高中班級選單 (一般下拉) -->
+    <div id="tab-senior" class="tab-content active">
+      <select class="native-select">
+        <option value="">-- 請選擇 高中班級 --</option>
+        <option value="301">高三甲</option>
+        <option value="302">高三乙</option>
+      </select>
+    </div>
+
+    <!-- 2. 國中班級選單 -->
+    <div id="tab-junior" class="tab-content">
+      <select class="native-select">
+        <option value="">-- 請選擇 國中班級 --</option>
+        <option value="101">國一甲</option>
+      </select>
+    </div>
+
+    <!-- 3. 依教師選單 (帶有關鍵字搜尋功能) -->
+    <div id="tab-teacher" class="tab-content">
+      <select id="teacherSelect">
+        <option value="">-- 請選擇或輸入教師姓名搜尋 --</option>
+        <option value="T01">張小明 (資訊)</option>
+        <option value="T02">李美麗 (英文)</option>
+        <option value="T03">王大同 (數學)</option>
+        <option value="T04">陳哲豪 (物理)</option>
+        <option value="T05">黃智勝 (化學)</option>
+      </select>
+    </div>
+
+    <!-- 4. 依教室選單 -->
+    <div id="tab-room" class="tab-content">
+      <select class="native-select">
+        <option value="">-- 請選擇 教室 --</option>
+        <option value="R101">電腦教室一</option>
+      </select>
     </div>
   </div>
 
-  <div class="result-box" id="resultDisplay">
-    目前尚未選擇任何項目
+  <!-- 課表卡片區 -->
+  <div class="schedule-card">
+    <div class="schedule-title">請選擇查詢項目</div>
+    <table class="schedule-table">
+      <thead>
+        <tr>
+          <th>節次</th>
+          <th>週一</th>
+          <th>週二</th>
+          <th>週三</th>
+          <th>週四</th>
+          <th>週五</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="6" style="color: #a0aec0; padding: 40px 0;">請由上方選單選擇類別與項目...</td></tr>
+      </tbody>
+    </table>
+    <div class="tip-text">
+      💡 點選課表內加底線的<span style="color:#0056b3;">教師/班級/教室</span>可直接切換查詢
+    </div>
   </div>
+
+  <!-- 引入 jQuery 與 Select2 JS -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
   <script>
-    // 模擬資料（完全對齊截圖格式）
-    const classData = [
-      { id: "11301", name: "11301 高三甲 H3A" },
-      { id: "11302", name: "11302 高三乙 H3B" },
-      { id: "11303", name: "11303 高三丙 H3C" },
-      { id: "11304", name: "11304 高三丁 H3D" },
-      { id: "11305", name: "11305 高三戊 H3E" }
-    ];
+    // 頁籤切換邏輯
+    function switchTab(tabName) {
+      // 切換按鈕樣式
+      $('.tab-btn').removeClass('active');
+      $(event.target).addClass('active');
 
-    const teacherData = [
-      { id: "T01", name: "T01 張小明 (資訊)" },
-      { id: "T02", name: "T02 李美麗 (英文)" },
-      { id: "T03", name: "T03 王大同 (數學)" },
-      { id: "T04", name: "T04 陳哲豪 (物理)" }
-    ];
-
-    // 初始化下拉元件邏輯
-    function setupCustomDropdown(containerId, dataList, groupName, onChangeCallback) {
-      const container = document.getElementById(containerId);
-      const displayBtn = container.querySelector('.selected-display');
-      const displayText = container.querySelector('.display-text');
-      const panel = container.querySelector('.dropdown-panel');
-      const searchInput = container.querySelector('.search-input');
-      const optionsList = container.querySelector('.options-list');
-      const prevBtn = container.querySelector('.nav-btn.prev');
-      const nextBtn = container.querySelector('.nav-btn.next');
-
-      let currentIndex = 0; // 預設選中第一項
-
-      // 渲染面板中的選項
-      function renderOptions(filterKey = '') {
-        const filtered = dataList.filter(item => 
-          item.name.toLowerCase().includes(filterKey.toLowerCase())
-        );
-
-        if (filtered.length === 0) {
-          optionsList.innerHTML = `<div class="no-data">查無匹配項目</div>`;
-          return;
-        }
-
-        optionsList.innerHTML = filtered.map(item => {
-          const isSelected = dataList[currentIndex].id === item.id;
-          return `
-            <div class="option-item ${isSelected ? 'selected' : ''}" data-id="${item.id}">
-              <input type="radio" name="${containerId}_radio" ${isSelected ? 'checked' : ''}>
-              <span>${item.name}</span>
-            </div>
-          `;
-        }).join('');
-
-        // 點擊選項事件
-        optionsList.querySelectorAll('.option-item').forEach(itemEl => {
-          itemEl.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const id = itemEl.getAttribute('data-id');
-            currentIndex = dataList.findIndex(d => d.id === id);
-            updateSelection();
-            container.classList.remove('open');
-          });
-        });
-      }
-
-      // 更新主按鈕顯示與 Radio 狀態
-      function updateSelection() {
-        const currentItem = dataList[currentIndex];
-        displayText.textContent = currentItem.name;
-        renderOptions(searchInput.value.trim());
-        if (onChangeCallback) onChangeCallback(currentItem);
-      }
-
-      // 點擊展開/關閉選單
-      displayBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isOpen = container.classList.contains('open');
-        // 關閉頁面上其他選單
-        document.querySelectorAll('.dropdown-control').forEach(c => c.classList.remove('open'));
-        
-        if (!isOpen) {
-          container.classList.add('open');
-          searchInput.value = ''; // 展開時清空搜尋字詞
-          renderOptions();
-          searchInput.focus();
-        }
-      });
-
-      // 防擋面板內點擊觸發關閉
-      panel.addEventListener('click', (e) => e.stopPropagation());
-
-      // 關鍵字搜尋過濾
-      searchInput.addEventListener('input', (e) => {
-        renderOptions(e.target.value.trim());
-      });
-
-      // 左鍵 ❮（上一個）
-      prevBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (currentIndex > 0) {
-          currentIndex--;
-          updateSelection();
-        }
-      });
-
-      // 右鍵 ❯（下一個）
-      nextBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (currentIndex < dataList.length - 1) {
-          currentIndex++;
-          updateSelection();
-        }
-      });
-
-      // 初始化第一次選擇
-      updateSelection();
+      // 切換選單內容
+      $('.tab-content').removeClass('active');
+      $('#tab-' + tabName).addClass('active');
     }
 
-    // 全局點擊空白處關閉選單
-    document.addEventListener('click', () => {
-      document.querySelectorAll('.dropdown-control').forEach(c => c.classList.remove('open'));
-    });
-
-    // 頁面載入初始化
-    document.addEventListener('DOMContentLoaded', () => {
-      const resultEl = document.getElementById('resultDisplay');
-
-      setupCustomDropdown('classDropdown', classData, '班級', (selected) => {
-        resultEl.innerHTML = `當前選擇班級：<strong>${selected.name}</strong>`;
-      });
-
-      setupCustomDropdown('teacherDropdown', teacherData, '教師', (selected) => {
-        resultEl.innerHTML = `當前選擇教師：<strong>${selected.name}</strong>`;
+    // 初始化 Select2 (替換依教師的下拉選單)
+    $(document).ready(function() {
+      $('#teacherSelect').select2({
+        placeholder: "-- 請選擇或輸入教師姓名搜尋 --",
+        allowClear: true,
+        language: {
+          noResults: function() {
+            return "查無此教師";
+          }
+        }
       });
     });
   </script>
