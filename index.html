@@ -3,246 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>班級與教師可搜尋下拉選單</title>
-  <style>
-    body {
-      font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
-      padding: 30px;
-      max-width: 500px;
-      margin: 0 auto;
-      background-color: #f9f9f9;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: bold;
-      color: #333;
-    }
-
-    /* 下拉元件外框容器 */
-    .custom-select-container {
-      position: relative;
-      width: 100%;
-    }
-
-    /* 模擬標準選單輸入框 + 右側箭頭 */
-    .select-input-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .select-input {
-      width: 100%;
-      padding: 10px 35px 10px 12px;
-      font-size: 15px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background-color: #fff;
-      outline: none;
-      cursor: pointer;
-      box-sizing: border-box;
-      transition: border-color 0.2s;
-    }
-
-    .select-input:focus {
-      border-color: #4A90E2;
-      box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
-    }
-
-    /* 右側下拉箭頭圖示 */
-    .select-arrow {
-      position: absolute;
-      right: 12px;
-      pointer-events: none;
-      font-size: 12px;
-      color: #666;
-      transition: transform 0.2s;
-    }
-
-    .custom-select-container.open .select-arrow {
-      transform: rotate(180deg);
-    }
-
-    /* 下拉選項選單彈窗 */
-    .options-dropdown {
-      position: absolute;
-      top: calc(100% + 4px);
-      left: 0;
-      right: 0;
-      max-height: 200px;
-      overflow-y: auto;
-      background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      z-index: 1000;
-      display: none;
-    }
-
-    .custom-select-container.open .options-dropdown {
-      display: block;
-    }
-
-    .option-item {
-      padding: 10px 12px;
-      cursor: pointer;
-      font-size: 14px;
-      color: #333;
-    }
-
-    .option-item:hover, .option-item.highlighted {
-      background-color: #f0f7ff;
-      color: #4A90E2;
-    }
-
-    .no-result {
-      padding: 10px 12px;
-      color: #999;
-      font-size: 14px;
-      text-align: center;
-    }
-
-    .result-display {
-      margin-top: 25px;
-      padding: 12px;
-      background-color: #eef6ff;
-      border-left: 4px solid #4A90E2;
-      border-radius: 4px;
-      color: #333;
-    }
-  </style>
+  <title>學校課表查詢系統</title>
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
-
-  <h2>搜尋/下拉選單系統</h2>
-
-  <!-- 教師選單 -->
-  <div class="form-group">
-    <label>依教師查詢：</label>
-    <div class="custom-select-container" id="teacherSelect">
-      <div class="select-input-wrapper">
-        <input type="text" class="select-input" placeholder="請選擇或搜尋教師..." autocomplete="off">
-        <span class="select-arrow">▼</span>
+  <div class="app-container">
+    <!-- 頂部標頭 -->
+    <header class="header">
+      <div class="logo-title">
+        <span class="badge">HLHS</span>
+        <h1>課表查詢系統</h1>
       </div>
-      <div class="options-dropdown"></div>
-    </div>
-  </div>
+      <div class="info-stats" id="stats-info">載入中...</div>
+    </header>
 
-  <!-- 班級選單 -->
-  <div class="form-group">
-    <label>依班級查詢：</label>
-    <div class="custom-select-container" id="classSelect">
-      <div class="select-input-wrapper">
-        <input type="text" class="select-input" placeholder="請選擇或搜尋班級..." autocomplete="off">
-        <span class="select-arrow">▼</span>
+    <!-- 頂部控制面板 (Tab + 下拉選單) -->
+    <div class="control-panel">
+      <nav class="tab-bar">
+        <button class="tab-btn active" data-mode="high">高中班級</button>
+        <button class="tab-btn" data-mode="junior">國中班級</button>
+        <button class="tab-btn" data-mode="teacher">依教師</button>
+        <button class="tab-btn" data-mode="room">依教室</button>
+      </nav>
+
+      <div class="select-wrapper">
+        <select id="item-select" class="dropdown-select">
+          <option value="">-- 請選擇 --</option>
+        </select>
       </div>
-      <div class="options-dropdown"></div>
     </div>
+
+    <!-- 課表內容區 -->
+    <main class="content">
+      <div class="content-header">
+        <h2 id="current-title">請選擇查詢項目</h2>
+      </div>
+
+      <div class="table-scroll-container">
+        <table class="schedule-table">
+          <thead>
+            <tr>
+              <th class="col-period">節次</th>
+              <th>週一</th>
+              <th>週二</th>
+              <th>週三</th>
+              <th>週四</th>
+              <th>週五</th>
+            </tr>
+          </thead>
+          <tbody id="schedule-body">
+            <!-- 動態生成 1~8 節 -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="footer-note">
+        💡 點選課表內加底線的<span class="highlight">教師/班級/教室</span>可直接切換查詢
+      </div>
+    </main>
   </div>
 
-  <div class="result-display" id="result">
-    目前尚未選擇任何項目
-  </div>
-
-  <script>
-    // 1. 資料庫資料
-    const teachers = [
-      { id: "T01", name: "張小明 (資訊科)" },
-      { id: "T02", name: "李美麗 (英文科)" },
-      { id: "T03", name: "王大同 (數學科)" },
-      { id: "T04", name: "張哲豪 (物理科)" }
-    ];
-
-    const classes = [
-      { id: "C101", name: "資一甲" },
-      { id: "C102", name: "資一乙" },
-      { id: "C201", name: "英二甲" },
-      { id: "C301", name: "數三甲" }
-    ];
-
-    // 2. 建立可搜尋下拉選單的通用邏輯
-    function setupSearchableDropdown(containerId, dataList, onSelectCallback) {
-      const container = document.getElementById(containerId);
-      const input = container.querySelector('.select-input');
-      const dropdown = container.querySelector('.options-dropdown');
-
-      // 繪製選單內容
-      function renderOptions(filterText = '') {
-        const filteredData = dataList.filter(item => 
-          item.name.toLowerCase().includes(filterText.toLowerCase())
-        );
-
-        if (filteredData.length === 0) {
-          dropdown.innerHTML = `<div class="no-result">查無匹配資料</div>`;
-          return;
-        }
-
-        dropdown.innerHTML = filteredData.map(item => 
-          `<div class="option-item" data-id="${item.id}" data-name="${item.name}">${item.name}</div>`
-        ).join('');
-
-        // 綁定點擊選項事件
-        dropdown.querySelectorAll('.option-item').forEach(el => {
-          el.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const name = el.getAttribute('data-name');
-            const id = el.getAttribute('data-id');
-            
-            input.value = name;
-            container.classList.remove('open');
-            if (onSelectCallback) onSelectCallback({ id, name });
-          });
-        });
-      }
-
-      // 初次渲染
-      renderOptions();
-
-      // 點擊輸入框展開/收合
-      input.addEventListener('click', (e) => {
-        e.stopPropagation();
-        // 關閉其他選單
-        document.querySelectorAll('.custom-select-container').forEach(c => {
-          if (c !== container) c.classList.remove('open');
-        });
-        container.classList.toggle('open');
-      });
-
-      // 輸入關鍵字進行過濾
-      input.addEventListener('input', (e) => {
-        const query = e.target.value.trim();
-        container.classList.add('open');
-        renderOptions(query);
-      });
-    }
-
-    // 3. 全局點擊空白處自動收合下拉清單
-    document.addEventListener('click', () => {
-      document.querySelectorAll('.custom-select-container').forEach(c => {
-        c.classList.remove('open');
-      });
-    });
-
-    // 4. 初始化兩個選單
-    document.addEventListener('DOMContentLoaded', () => {
-      const resultEl = document.getElementById('result');
-
-      // 初始化教師選單
-      setupSearchableDropdown('teacherSelect', teachers, (selected) => {
-        resultEl.innerHTML = `已選擇教師：<strong>${selected.name}</strong> (ID: ${selected.id})`;
-      });
-
-      // 初始化班級選單
-      setupSearchableDropdown('classSelect', classes, (selected) => {
-        resultEl.innerHTML = `已選擇班級：<strong>${selected.name}</strong> (ID: ${selected.id})`;
-      });
-    });
-  </script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
