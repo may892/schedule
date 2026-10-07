@@ -3,146 +3,246 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>班級與教師查詢系統</title>
+  <title>班級與教師可搜尋下拉選單</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      max-width: 600px;
+      font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+      padding: 30px;
+      max-width: 500px;
       margin: 0 auto;
+      background-color: #f9f9f9;
     }
-    .search-group {
+
+    .form-group {
       margin-bottom: 20px;
     }
+
     label {
       display: block;
       margin-bottom: 8px;
       font-weight: bold;
+      color: #333;
     }
-    input[type="search"] {
+
+    /* 下拉元件外框容器 */
+    .custom-select-container {
+      position: relative;
       width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
     }
-    .result-box {
-      margin-top: 15px;
-      padding: 10px;
-      background-color: #f4f4f9;
+
+    /* 模擬標準選單輸入框 + 右側箭頭 */
+    .select-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .select-input {
+      width: 100%;
+      padding: 10px 35px 10px 12px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background-color: #fff;
+      outline: none;
+      cursor: pointer;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+
+    .select-input:focus {
+      border-color: #4A90E2;
+      box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
+    }
+
+    /* 右側下拉箭頭圖示 */
+    .select-arrow {
+      position: absolute;
+      right: 12px;
+      pointer-events: none;
+      font-size: 12px;
+      color: #666;
+      transition: transform 0.2s;
+    }
+
+    .custom-select-container.open .select-arrow {
+      transform: rotate(180deg);
+    }
+
+    /* 下拉選項選單彈窗 */
+    .options-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      max-height: 200px;
+      overflow-y: auto;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: none;
+    }
+
+    .custom-select-container.open .options-dropdown {
+      display: block;
+    }
+
+    .option-item {
+      padding: 10px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .option-item:hover, .option-item.highlighted {
+      background-color: #f0f7ff;
+      color: #4A90E2;
+    }
+
+    .no-result {
+      padding: 10px 12px;
+      color: #999;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .result-display {
+      margin-top: 25px;
+      padding: 12px;
+      background-color: #eef6ff;
+      border-left: 4px solid #4A90E2;
       border-radius: 4px;
+      color: #333;
     }
   </style>
 </head>
 <body>
 
-  <h2>班級與教師速查</h2>
+  <h2>搜尋/下拉選單系統</h2>
 
-  <!-- 1. 依教師查詢 (結合下拉與輸入搜尋) -->
-  <div class="search-group">
-    <label for="teacherInput">依教師查詢：</label>
-    <input 
-      type="search" 
-      id="teacherInput" 
-      list="teacherList" 
-      placeholder="點擊選擇或輸入教師姓名關鍵字..."
-      autocomplete="off"
-    >
-    <datalist id="teacherList">
-      <!-- 選單選項由 JavaScript 動態渲染 -->
-    </datalist>
+  <!-- 教師選單 -->
+  <div class="form-group">
+    <label>依教師查詢：</label>
+    <div class="custom-select-container" id="teacherSelect">
+      <div class="select-input-wrapper">
+        <input type="text" class="select-input" placeholder="請選擇或搜尋教師..." autocomplete="off">
+        <span class="select-arrow">▼</span>
+      </div>
+      <div class="options-dropdown"></div>
+    </div>
   </div>
 
-  <!-- 2. 依班級查詢 (結合下拉與輸入搜尋) -->
-  <div class="search-group">
-    <label for="classInput">依班級查詢：</label>
-    <input 
-      type="search" 
-      id="classInput" 
-      list="classList" 
-      placeholder="點擊選擇或輸入班級名稱關鍵字..."
-      autocomplete="off"
-    >
-    <datalist id="classList">
-      <!-- 選單選項由 JavaScript 動態渲染 -->
-    </datalist>
+  <!-- 班級選單 -->
+  <div class="form-group">
+    <label>依班級查詢：</label>
+    <div class="custom-select-container" id="classSelect">
+      <div class="select-input-wrapper">
+        <input type="text" class="select-input" placeholder="請選擇或搜尋班級..." autocomplete="off">
+        <span class="select-arrow">▼</span>
+      </div>
+      <div class="options-dropdown"></div>
+    </div>
   </div>
 
-  <div class="result-box" id="resultDisplay">
-    請點擊或輸入內容進行查詢...
+  <div class="result-display" id="result">
+    目前尚未選擇任何項目
   </div>
 
   <script>
-    // 模擬資料 (可替換為實際 API 或是 JSON 檔資料)
-    const mockTeachers = [
-      { id: "T01", name: "張小明", department: "資訊科" },
-      { id: "T02", name: "李美麗", department: "英文科" },
-      { id: "T03", name: "王大同", department: "數學科" },
-      { id: "T04", name: "張哲豪", department: "物理科" }
+    // 1. 資料庫資料
+    const teachers = [
+      { id: "T01", name: "張小明 (資訊科)" },
+      { id: "T02", name: "李美麗 (英文科)" },
+      { id: "T03", name: "王大同 (數學科)" },
+      { id: "T04", name: "張哲豪 (物理科)" }
     ];
 
-    const mockClasses = [
+    const classes = [
       { id: "C101", name: "資一甲" },
       { id: "C102", name: "資一乙" },
       { id: "C201", name: "英二甲" },
       { id: "C301", name: "數三甲" }
     ];
 
-    // 確保 DOM 渲染完畢後執行，避免抓不到元素的錯誤
-    document.addEventListener('DOMContentLoaded', () => {
-      initDropdowns();
-      bindEvents();
+    // 2. 建立可搜尋下拉選單的通用邏輯
+    function setupSearchableDropdown(containerId, dataList, onSelectCallback) {
+      const container = document.getElementById(containerId);
+      const input = container.querySelector('.select-input');
+      const dropdown = container.querySelector('.options-dropdown');
+
+      // 繪製選單內容
+      function renderOptions(filterText = '') {
+        const filteredData = dataList.filter(item => 
+          item.name.toLowerCase().includes(filterText.toLowerCase())
+        );
+
+        if (filteredData.length === 0) {
+          dropdown.innerHTML = `<div class="no-result">查無匹配資料</div>`;
+          return;
+        }
+
+        dropdown.innerHTML = filteredData.map(item => 
+          `<div class="option-item" data-id="${item.id}" data-name="${item.name}">${item.name}</div>`
+        ).join('');
+
+        // 綁定點擊選項事件
+        dropdown.querySelectorAll('.option-item').forEach(el => {
+          el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const name = el.getAttribute('data-name');
+            const id = el.getAttribute('data-id');
+            
+            input.value = name;
+            container.classList.remove('open');
+            if (onSelectCallback) onSelectCallback({ id, name });
+          });
+        });
+      }
+
+      // 初次渲染
+      renderOptions();
+
+      // 點擊輸入框展開/收合
+      input.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // 關閉其他選單
+        document.querySelectorAll('.custom-select-container').forEach(c => {
+          if (c !== container) c.classList.remove('open');
+        });
+        container.classList.toggle('open');
+      });
+
+      // 輸入關鍵字進行過濾
+      input.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        container.classList.add('open');
+        renderOptions(query);
+      });
+    }
+
+    // 3. 全局點擊空白處自動收合下拉清單
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.custom-select-container').forEach(c => {
+        c.classList.remove('open');
+      });
     });
 
-    // 初始化選單資料 (渲染至 datalist)
-    function initDropdowns() {
-      const teacherDatalist = document.getElementById('teacherList');
-      const classDatalist = document.getElementById('classList');
+    // 4. 初始化兩個選單
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultEl = document.getElementById('result');
 
-      // 渲染教師選單
-      teacherDatalist.innerHTML = mockTeachers.map(t => 
-        `<option value="${t.name}">工號: ${t.id} - ${t.department}</option>`
-      ).join('');
-
-      // 渲染班級選單
-      classDatalist.innerHTML = mockClasses.map(c => 
-        `<option value="${c.name}">代碼: ${c.id}</option>`
-      ).join('');
-    }
-
-    // 監聽輸入與選擇事件
-    function bindEvents() {
-      const teacherInput = document.getElementById('teacherInput');
-      const classInput = document.getElementById('classInput');
-      const resultDisplay = document.getElementById('resultDisplay');
-
-      // 監聽教師查詢
-      teacherInput.addEventListener('input', (e) => {
-        const value = e.target.value.trim();
-        const found = mockTeachers.find(t => t.name === value);
-        if (found) {
-          resultDisplay.innerHTML = `<strong>查詢成功：</strong> 教師 [${found.name}] (${found.department})`;
-        } else if (value) {
-          resultDisplay.innerHTML = `正在搜尋與「${value}」相關的教師...`;
-        } else {
-          resultDisplay.innerHTML = `請點擊或輸入內容進行查詢...`;
-        }
+      // 初始化教師選單
+      setupSearchableDropdown('teacherSelect', teachers, (selected) => {
+        resultEl.innerHTML = `已選擇教師：<strong>${selected.name}</strong> (ID: ${selected.id})`;
       });
 
-      // 監聽班級查詢
-      classInput.addEventListener('input', (e) => {
-        const value = e.target.value.trim();
-        const found = mockClasses.find(c => c.name === value);
-        if (found) {
-          resultDisplay.innerHTML = `<strong>查詢成功：</strong> 班級 [${found.name}]`;
-        } else if (value) {
-          resultDisplay.innerHTML = `正在搜尋與「${value}」相關的班級...`;
-        } else {
-          resultDisplay.innerHTML = `請點擊或輸入內容進行查詢...`;
-        }
+      // 初始化班級選單
+      setupSearchableDropdown('classSelect', classes, (selected) => {
+        resultEl.innerHTML = `已選擇班級：<strong>${selected.name}</strong> (ID: ${selected.id})`;
       });
-    }
+    });
   </script>
 </body>
 </html>
