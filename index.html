@@ -3,66 +3,170 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>學校課表查詢系統</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <title>班級與教師查詢</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", sans-serif;
+      padding: 30px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    /* 快速搜尋輸入框 */
+    .search-filter {
+      width: 100%;
+      padding: 6px 10px;
+      margin-bottom: 6px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    /* 維持標準原生下拉選單外觀 */
+    .standard-select {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fff;
+      box-sizing: border-box;
+    }
+
+    .result-display {
+      margin-top: 20px;
+      padding: 12px;
+      background-color: #f0f4f8;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 <body>
-  <div class="app-container">
-    <!-- 頂部標頭 -->
-    <header class="header">
-      <div class="logo-title">
-        <span class="badge">HLHS</span>
-        <h1>課表查詢系統</h1>
-      </div>
-      <div class="info-stats" id="stats-info">載入中...</div>
-    </header>
 
-    <!-- 頂部控制面板 (Tab + 下拉選單) -->
-    <div class="control-panel">
-      <nav class="tab-bar">
-        <button class="tab-btn active" data-mode="high">高中班級</button>
-        <button class="tab-btn" data-mode="junior">國中班級</button>
-        <button class="tab-btn" data-mode="teacher">依教師</button>
-        <button class="tab-btn" data-mode="room">依教室</button>
-      </nav>
+  <h2>班級與教師查詢</h2>
 
-      <div class="select-wrapper">
-        <select id="item-select" class="dropdown-select">
-          <option value="">-- 請選擇 --</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- 課表內容區 -->
-    <main class="content">
-      <div class="content-header">
-        <h2 id="current-title">請選擇查詢項目</h2>
-      </div>
-
-      <div class="table-scroll-container">
-        <table class="schedule-table">
-          <thead>
-            <tr>
-              <th class="col-period">節次</th>
-              <th>週一</th>
-              <th>週二</th>
-              <th>週三</th>
-              <th>週四</th>
-              <th>週五</th>
-            </tr>
-          </thead>
-          <tbody id="schedule-body">
-            <!-- 動態生成 1~8 節 -->
-          </tbody>
-        </table>
-      </div>
-
-      <div class="footer-note">
-        💡 點選課表內加底線的<span class="highlight">教師/班級/教室</span>可直接切換查詢
-      </div>
-    </main>
+  <!-- 教師選單區塊 -->
+  <div class="form-group">
+    <label for="teacherSelect">依教師查詢：</label>
+    <!-- 關鍵字搜尋框 -->
+    <input 
+      type="text" 
+      id="teacherSearch" 
+      class="search-filter" 
+      placeholder="🔍 輸入關鍵字快速過濾教師..." 
+      autocomplete="off"
+    >
+    <!-- 標準下拉選單 (維持原始外觀) -->
+    <select id="teacherSelect" class="standard-select">
+      <option value="">-- 請選擇教師 --</option>
+    </select>
   </div>
 
-  <script src="app.js?v=3"></script>
+  <!-- 班級選單區塊 -->
+  <div class="form-group">
+    <label for="classSelect">依班級查詢：</label>
+    <!-- 關鍵字搜尋框 -->
+    <input 
+      type="text" 
+      id="classSearch" 
+      class="search-filter" 
+      placeholder="🔍 輸入關鍵字快速過濾班級..." 
+      autocomplete="off"
+    >
+    <!-- 標準下拉選單 (維持原始外觀) -->
+    <select id="classSelect" class="standard-select">
+      <option value="">-- 請選擇班級 --</option>
+    </select>
+  </div>
+
+  <div class="result-display" id="result">
+    目前尚未選擇任何項目
+  </div>
+
+  <script>
+    // 原始資料
+    const teachers = [
+      { id: "T01", name: "張小明 (資訊科)" },
+      { id: "T02", name: "李美麗 (英文科)" },
+      { id: "T03", name: "王大同 (數學科)" },
+      { id: "T04", name: "張哲豪 (物理科)" }
+    ];
+
+    const classes = [
+      { id: "C101", name: "資一甲" },
+      { id: "C102", name: "資一乙" },
+      { id: "C201", name: "英二甲" },
+      { id: "C301", name: "數三甲" }
+    ];
+
+    // 初始化與綁定搜尋過濾功能
+    function initSearchableSelect(inputId, selectId, dataList, defaultText) {
+      const input = document.getElementById(inputId);
+      const select = document.getElementById(selectId);
+
+      // 渲染選項到 select 中
+      function renderOptions(filterKeyword = '') {
+        // 先保留第一項預設提示
+        select.innerHTML = `<option value="">${defaultText}</option>`;
+
+        // 過濾資料
+        const filtered = dataList.filter(item => 
+          item.name.toLowerCase().includes(filterKeyword.toLowerCase())
+        );
+
+        // 動態新增符合條件的 <option>
+        filtered.forEach(item => {
+          const opt = document.createElement('option');
+          opt.value = item.id;
+          opt.textContent = item.name;
+          select.appendChild(opt);
+        });
+      }
+
+      // 1. 初次載入渲染所有選項
+      renderOptions();
+
+      // 2. 監聽輸入框關鍵字，即時過濾下拉清單選項
+      input.addEventListener('input', (e) => {
+        renderOptions(e.target.value.trim());
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultEl = document.getElementById('result');
+
+      // 初始化教師選單
+      initSearchableSelect('teacherSearch', 'teacherSelect', teachers, '-- 請選擇教師 --');
+      // 初始化班級選單
+      initSearchableSelect('classSearch', 'classSelect', classes, '-- 請選擇班級 --');
+
+      // 監聽教師選單切換事件
+      document.getElementById('teacherSelect').addEventListener('change', (e) => {
+        const selectedText = e.target.options[e.target.selectedIndex].text;
+        if (e.target.value) {
+          resultEl.innerHTML = `已選擇教師：<strong>${selectedText}</strong>`;
+        }
+      });
+
+      // 監聽班級選單切換事件
+      document.getElementById('classSelect').addEventListener('change', (e) => {
+        const selectedText = e.target.options[e.target.selectedIndex].text;
+        if (e.target.value) {
+          resultEl.innerHTML = `已選擇班級：<strong>${selectedText}</strong>`;
+        }
+      });
+    });
+  </script>
 </body>
 </html>
