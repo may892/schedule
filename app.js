@@ -10,8 +10,24 @@ fetch('schedule.json?v=3')
   .then(data => {
     rawData = data;
     updateStats();
+    initSelect2(); // 初始化 Select2 搜尋套件
     populateSelect();
   });
+
+// 初始化 Select2 搜尋套件與變更事件綁定
+function initSelect2() {
+  $('#item-select').select2({
+    placeholder: `-- 請選擇 ${getModeLabel()} --`,
+    allowClear: true,
+    width: '100%'
+  });
+
+  // 監聽 Select2 選取與清空事件
+  $('#item-select').on('change select2:select select2:unselect', (e) => {
+    selectedItem = e.target.value;
+    renderSchedule();
+  });
+}
 
 // 頁籤切換
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -23,12 +39,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     populateSelect();
     renderSchedule();
   });
-});
-
-// 下拉選單變更事件
-selectEl.addEventListener('change', (e) => {
-  selectedItem = e.target.value;
-  renderSchedule();
 });
 
 // 統計全校資料
@@ -83,7 +93,7 @@ function getOptions() {
   return [];
 }
 
-// 填入下拉選單選項
+// 填入下拉選單選項並同步通知 Select2 更新 UI
 function populateSelect() {
   selectEl.innerHTML = '';
   const options = getOptions();
@@ -100,6 +110,12 @@ function populateSelect() {
     if (opt.value === selectedItem) optionEl.selected = true;
     selectEl.appendChild(optionEl);
   });
+
+  // 關鍵新增：通知 Select2 資料已更新，重新渲染搜尋下拉選單面板
+  if ($.fn.select2 && $(selectEl).data('select2')) {$(selectEl).select2('destroy'); // 銷毀舊實例
+    initSelect2();                   // 重新初始化套用新提示文字與選項
+    $(selectEl).val(selectedItem).trigger('change.select2'); // 同步當前選中狀態
+  }
 }
 
 function getModeLabel() {
