@@ -3,168 +3,396 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>班級與教師查詢</title>
+  <title>班級與教師進階選單</title>
   <style>
     body {
-      font-family: "Microsoft JhengHei", sans-serif;
-      padding: 30px;
-      max-width: 500px;
-      margin: 0 auto;
+      font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+      padding: 40px 20px;
+      background-color: #f5f7fa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 25px;
+      width: 100%;
+      max-width: 360px;
     }
 
-    label {
+    .group-label {
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #333;
       display: block;
+    }
+
+    /* 主下拉按鈕列（深藍背景 + 左右箭頭） */
+    .dropdown-control {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background-color: #0056b3; /* 截圖中的深藍色 */
+      color: #ffffff;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      user-select: none;
+    }
+
+    .nav-btn {
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    .nav-btn:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .nav-btn.prev {
+      border-radius: 6px 0 0 6px;
+    }
+
+    .nav-btn.next {
+      border-radius: 0 6px 6px 0;
+    }
+
+    .selected-display {
+      flex: 1;
+      text-align: center;
+      padding: 10px 8px;
+      font-weight: bold;
+      font-size: 15px;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .arrow-icon {
+      font-size: 10px;
+      transition: transform 0.2s;
+    }
+
+    .dropdown-control.open .arrow-icon {
+      transform: rotate(180deg);
+    }
+
+    /* 浮動下拉選單面板 */
+    .dropdown-panel {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      width: 100%;
+      background-color: #ffffff;
+      border: 1px solid #dcdfe6;
+      border-radius: 6px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      padding: 10px;
+      box-sizing: border-box;
+      display: none;
+      color: #333;
+    }
+
+    .dropdown-control.open .dropdown-panel {
+      display: block;
+    }
+
+    /* 關鍵字搜尋輸入框 */
+    .search-box {
+      position: relative;
+      margin-bottom: 8px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 30px 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: #0056b3;
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #0056b3;
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    /* 群組標頭 */
+    .panel-header {
+      font-size: 13px;
+      color: #666;
+      background-color: #f2f2f2;
+      padding: 6px 10px;
+      border-radius: 4px;
       margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
       font-weight: bold;
     }
 
-    /* 快速搜尋輸入框 */
-    .search-filter {
-      width: 100%;
-      padding: 6px 10px;
-      margin-bottom: 6px;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
+    /* 選項列表 */
+    .options-list {
+      max-height: 200px;
+      overflow-y: auto;
     }
 
-    /* 維持標準原生下拉選單外觀 */
-    .standard-select {
-      width: 100%;
+    .option-item {
+      display: flex;
+      align-items: center;
       padding: 8px 10px;
-      font-size: 15px;
-      border: 1px solid #ccc;
+      cursor: pointer;
       border-radius: 4px;
-      background-color: #fff;
-      box-sizing: border-box;
+      font-size: 15px;
+      transition: background 0.15s;
     }
 
-    .result-display {
+    .option-item:hover {
+      background-color: #f5f7fa;
+    }
+
+    /* 被選中的項目高亮（藍底白字） */
+    .option-item.selected {
+      background-color: #0056b3;
+      color: #ffffff;
+    }
+
+    /* Radio 自訂樣式 */
+    .option-item input[type="radio"] {
+      margin-right: 10px;
+      accent-color: #0056b3;
+      cursor: pointer;
+    }
+
+    .option-item.selected input[type="radio"] {
+      accent-color: #ffffff;
+    }
+
+    .no-data {
+      padding: 10px;
+      text-align: center;
+      color: #999;
+      font-size: 14px;
+    }
+
+    /* 結果顯示 */
+    .result-box {
       margin-top: 20px;
-      padding: 12px;
-      background-color: #f0f4f8;
+      padding: 12px 20px;
+      background: #eef6ff;
+      border-left: 4px solid #0056b3;
       border-radius: 4px;
+      width: 100%;
+      max-width: 360px;
+      box-sizing: border-box;
     }
   </style>
 </head>
 <body>
 
-  <h2>班級與教師查詢</h2>
-
-  <!-- 教師選單區塊 -->
+  <!-- 1. 班級選單 -->
   <div class="form-group">
-    <label for="teacherSelect">依教師查詢：</label>
-    <!-- 關鍵字搜尋框 -->
-    <input 
-      type="text" 
-      id="teacherSearch" 
-      class="search-filter" 
-      placeholder="🔍 輸入關鍵字快速過濾教師..." 
-      autocomplete="off"
-    >
-    <!-- 標準下拉選單 (維持原始外觀) -->
-    <select id="teacherSelect" class="standard-select">
-      <option value="">-- 請選擇教師 --</option>
-    </select>
+    <span class="group-label">班級選擇：</span>
+    <div class="dropdown-control" id="classDropdown">
+      <div class="nav-btn prev" title="上一個">❮</div>
+      <div class="selected-display">
+        <span class="display-text">請選擇班級</span>
+        <span class="arrow-icon">▼</span>
+      </div>
+      <div class="nav-btn next" title="下一個">❯</div>
+
+      <!-- 下拉面板 -->
+      <div class="dropdown-panel">
+        <div class="search-box">
+          <input type="text" class="search-input" placeholder="關鍵字搜尋..." autocomplete="off">
+          <span class="search-icon">🔍</span>
+        </div>
+        <div class="panel-header">
+          <span>📋 群組清單</span>
+        </div>
+        <div class="options-list"></div>
+      </div>
+    </div>
   </div>
 
-  <!-- 班級選單區塊 -->
+  <!-- 2. 教師選單 -->
   <div class="form-group">
-    <label for="classSelect">依班級查詢：</label>
-    <!-- 關鍵字搜尋框 -->
-    <input 
-      type="text" 
-      id="classSearch" 
-      class="search-filter" 
-      placeholder="🔍 輸入關鍵字快速過濾班級..." 
-      autocomplete="off"
-    >
-    <!-- 標準下拉選單 (維持原始外觀) -->
-    <select id="classSelect" class="standard-select">
-      <option value="">-- 請選擇班級 --</option>
-    </select>
+    <span class="group-label">教師選擇：</span>
+    <div class="dropdown-control" id="teacherDropdown">
+      <div class="nav-btn prev" title="上一個">❮</div>
+      <div class="selected-display">
+        <span class="display-text">請選擇教師</span>
+        <span class="arrow-icon">▼</span>
+      </div>
+      <div class="nav-btn next" title="下一個">❯</div>
+
+      <!-- 下拉面板 -->
+      <div class="dropdown-panel">
+        <div class="search-box">
+          <input type="text" class="search-input" placeholder="關鍵字搜尋..." autocomplete="off">
+          <span class="search-icon">🔍</span>
+        </div>
+        <div class="panel-header">
+          <span>📋 教師清單</span>
+        </div>
+        <div class="options-list"></div>
+      </div>
+    </div>
   </div>
 
-  <div class="result-display" id="result">
+  <div class="result-box" id="resultDisplay">
     目前尚未選擇任何項目
   </div>
 
   <script>
-    // 原始資料
-    const teachers = [
-      { id: "T01", name: "張小明 (資訊科)" },
-      { id: "T02", name: "李美麗 (英文科)" },
-      { id: "T03", name: "王大同 (數學科)" },
-      { id: "T04", name: "張哲豪 (物理科)" }
+    // 模擬資料（完全對齊截圖格式）
+    const classData = [
+      { id: "11301", name: "11301 高三甲 H3A" },
+      { id: "11302", name: "11302 高三乙 H3B" },
+      { id: "11303", name: "11303 高三丙 H3C" },
+      { id: "11304", name: "11304 高三丁 H3D" },
+      { id: "11305", name: "11305 高三戊 H3E" }
     ];
 
-    const classes = [
-      { id: "C101", name: "資一甲" },
-      { id: "C102", name: "資一乙" },
-      { id: "C201", name: "英二甲" },
-      { id: "C301", name: "數三甲" }
+    const teacherData = [
+      { id: "T01", name: "T01 張小明 (資訊)" },
+      { id: "T02", name: "T02 李美麗 (英文)" },
+      { id: "T03", name: "T03 王大同 (數學)" },
+      { id: "T04", name: "T04 陳哲豪 (物理)" }
     ];
 
-    // 初始化與綁定搜尋過濾功能
-    function initSearchableSelect(inputId, selectId, dataList, defaultText) {
-      const input = document.getElementById(inputId);
-      const select = document.getElementById(selectId);
+    // 初始化下拉元件邏輯
+    function setupCustomDropdown(containerId, dataList, groupName, onChangeCallback) {
+      const container = document.getElementById(containerId);
+      const displayBtn = container.querySelector('.selected-display');
+      const displayText = container.querySelector('.display-text');
+      const panel = container.querySelector('.dropdown-panel');
+      const searchInput = container.querySelector('.search-input');
+      const optionsList = container.querySelector('.options-list');
+      const prevBtn = container.querySelector('.nav-btn.prev');
+      const nextBtn = container.querySelector('.nav-btn.next');
 
-      // 渲染選項到 select 中
-      function renderOptions(filterKeyword = '') {
-        // 先保留第一項預設提示
-        select.innerHTML = `<option value="">${defaultText}</option>`;
+      let currentIndex = 0; // 預設選中第一項
 
-        // 過濾資料
+      // 渲染面板中的選項
+      function renderOptions(filterKey = '') {
         const filtered = dataList.filter(item => 
-          item.name.toLowerCase().includes(filterKeyword.toLowerCase())
+          item.name.toLowerCase().includes(filterKey.toLowerCase())
         );
 
-        // 動態新增符合條件的 <option>
-        filtered.forEach(item => {
-          const opt = document.createElement('option');
-          opt.value = item.id;
-          opt.textContent = item.name;
-          select.appendChild(opt);
+        if (filtered.length === 0) {
+          optionsList.innerHTML = `<div class="no-data">查無匹配項目</div>`;
+          return;
+        }
+
+        optionsList.innerHTML = filtered.map(item => {
+          const isSelected = dataList[currentIndex].id === item.id;
+          return `
+            <div class="option-item ${isSelected ? 'selected' : ''}" data-id="${item.id}">
+              <input type="radio" name="${containerId}_radio" ${isSelected ? 'checked' : ''}>
+              <span>${item.name}</span>
+            </div>
+          `;
+        }).join('');
+
+        // 點擊選項事件
+        optionsList.querySelectorAll('.option-item').forEach(itemEl => {
+          itemEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = itemEl.getAttribute('data-id');
+            currentIndex = dataList.findIndex(d => d.id === id);
+            updateSelection();
+            container.classList.remove('open');
+          });
         });
       }
 
-      // 1. 初次載入渲染所有選項
-      renderOptions();
+      // 更新主按鈕顯示與 Radio 狀態
+      function updateSelection() {
+        const currentItem = dataList[currentIndex];
+        displayText.textContent = currentItem.name;
+        renderOptions(searchInput.value.trim());
+        if (onChangeCallback) onChangeCallback(currentItem);
+      }
 
-      // 2. 監聽輸入框關鍵字，即時過濾下拉清單選項
-      input.addEventListener('input', (e) => {
+      // 點擊展開/關閉選單
+      displayBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = container.classList.contains('open');
+        // 關閉頁面上其他選單
+        document.querySelectorAll('.dropdown-control').forEach(c => c.classList.remove('open'));
+        
+        if (!isOpen) {
+          container.classList.add('open');
+          searchInput.value = ''; // 展開時清空搜尋字詞
+          renderOptions();
+          searchInput.focus();
+        }
+      });
+
+      // 防擋面板內點擊觸發關閉
+      panel.addEventListener('click', (e) => e.stopPropagation());
+
+      // 關鍵字搜尋過濾
+      searchInput.addEventListener('input', (e) => {
         renderOptions(e.target.value.trim());
       });
-    }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const resultEl = document.getElementById('result');
-
-      // 初始化教師選單
-      initSearchableSelect('teacherSearch', 'teacherSelect', teachers, '-- 請選擇教師 --');
-      // 初始化班級選單
-      initSearchableSelect('classSearch', 'classSelect', classes, '-- 請選擇班級 --');
-
-      // 監聽教師選單切換事件
-      document.getElementById('teacherSelect').addEventListener('change', (e) => {
-        const selectedText = e.target.options[e.target.selectedIndex].text;
-        if (e.target.value) {
-          resultEl.innerHTML = `已選擇教師：<strong>${selectedText}</strong>`;
+      // 左鍵 ❮（上一個）
+      prevBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentIndex > 0) {
+          currentIndex--;
+          updateSelection();
         }
       });
 
-      // 監聽班級選單切換事件
-      document.getElementById('classSelect').addEventListener('change', (e) => {
-        const selectedText = e.target.options[e.target.selectedIndex].text;
-        if (e.target.value) {
-          resultEl.innerHTML = `已選擇班級：<strong>${selectedText}</strong>`;
+      // 右鍵 ❯（下一個）
+      nextBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentIndex < dataList.length - 1) {
+          currentIndex++;
+          updateSelection();
         }
+      });
+
+      // 初始化第一次選擇
+      updateSelection();
+    }
+
+    // 全局點擊空白處關閉選單
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.dropdown-control').forEach(c => c.classList.remove('open'));
+    });
+
+    // 頁面載入初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultEl = document.getElementById('resultDisplay');
+
+      setupCustomDropdown('classDropdown', classData, '班級', (selected) => {
+        resultEl.innerHTML = `當前選擇班級：<strong>${selected.name}</strong>`;
+      });
+
+      setupCustomDropdown('teacherDropdown', teacherData, '教師', (selected) => {
+        resultEl.innerHTML = `當前選擇教師：<strong>${selected.name}</strong>`;
       });
     });
   </script>
