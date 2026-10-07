@@ -2,8 +2,8 @@ let rawData = [];
 let currentMode = 'high'; // 'high' | 'junior' | 'teacher' | 'room'
 let selectedItem = '';
 
-const inputEl = document.getElementById('item-search');
-const datalistEl = document.getElementById('item-options');
+const searchInput = document.getElementById('search-input');
+const itemListEl = document.getElementById('item-list');
 
 // 初始化
 fetch('schedule.json?v=3')
@@ -11,7 +11,7 @@ fetch('schedule.json?v=3')
   .then(data => {
     rawData = data;
     updateStats();
-    populateSelect();
+    renderList();
   });
 
 // 頁籤切換
@@ -21,33 +21,17 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     e.target.classList.add('active');
     currentMode = e.target.dataset.mode;
     selectedItem = '';
-    inputEl.value = '';
-    inputEl.placeholder = `-- 請搜尋或選擇 ${getModeLabel()} --`;
-    populateSelect();
+    searchInput.value = '';
+    searchInput.placeholder = `搜尋${getModeLabel()}...`;
+
+    renderList();
     renderSchedule();
   });
 });
 
-// 輸入或選擇變更事件
-inputEl.addEventListener('input', (e) => {
-  const val = e.target.value;
-  const options = getOptions();
-  
-  // 檢查輸入值是否匹配選項（支援選單點選，或輸入名稱/代碼匹配）
-  const match = options.find(opt => opt.value === val || opt.label === val || (opt.code && val.includes(opt.code)));
-  
-  if (match) {
-    selectedItem = match.value;
-    renderSchedule();
-  } else if (val === '') {
-    selectedItem = '';
-    renderSchedule();
-  }
-});
-
-// 點擊清空輸入框方便重新搜尋
-inputEl.addEventListener('focus', () => {
-  inputEl.value = '';
+// 即時搜尋監聽
+searchInput.addEventListener('input', () => {
+  renderList();
 });
 
 // 統計全校資料
@@ -57,7 +41,7 @@ function updateStats() {
   document.getElementById('stats-info').innerText = `收錄 ${classes} 個班級・${teachers} 位教師`;
 }
 
-// 班級自然排序
+// 自然排序
 function sortClassNames(classList) {
   return classList.sort((a, b) => {
     const matchA = a.match(/([JH]\d[A-Z0-9]+)/);
@@ -68,14 +52,14 @@ function sortClassNames(classList) {
   });
 }
 
-// 取得當前 Mode 下的選項清單
+// 取得當前模式的選項
 function getOptions() {
   if (currentMode === 'high') {
     const set = new Set(rawData.filter(d => d.class_name && d.class_name.startsWith('高')).map(d => d.class_name));
-    return sortClassNames(Array.from(set)).map(name => ({ label: name, value: name }));
+    return sortClassNames(Array.from(set)).map(name => ({ label: name, value: name, code: '' }));
   } else if (currentMode === 'junior') {
     const set = new Set(rawData.filter(d => d.class_name && d.class_name.startsWith('國')).map(d => d.class_name));
-    return sortClassNames(Array.from(set)).map(name => ({ label: name, value: name }));
+    return sortClassNames(Array.from(set)).map(name => ({ label: name, value: name, code: '' }));
   } else if (currentMode === 'teacher') {
     const teacherMap = new Map();
     rawData.forEach(d => {
@@ -90,29 +74,60 @@ function getOptions() {
 
     const sortedTeachers = Array.from(teacherMap.values()).sort((a, b) => a.order - b.order);
     return sortedTeachers.map(t => ({
-      label: `${t.name} ${t.code ? '(' + t.code + ')' : ''}`,
+      label: t.name,
       value: t.name,
       code: t.code
     }));
   } else if (currentMode === 'room') {
     const set = new Set(rawData.map(d => d.room).filter(Boolean));
     const sortedRooms = Array.from(set).sort();
-    return sortedRooms.map(room => ({ label: room, value: room }));
+    return sortedRooms.map(room => ({ label: room, value: room, code: '' }));
   }
   return [];
 }
 
-// 填入下拉搜尋清單
-function populateSelect() {
-  datalistEl.innerHTML = '';
+// 渲染左側選單
+function renderList() {
+  itemListEl.innerHTML = '';
   const options = getOptions();
+  const keyword = searchInput.value.trim().toLowerCase();
 
-  options.forEach(opt => {
-    const optionEl = document.createElement('option');
-    optionEl.value = opt.value;
-    optionEl.label = opt.label;
-    datalistEl.appendChild(optionEl);
+  const filteredOptions = options.filter(opt => {
+    const matchLabel = opt.label.toLowerCase().includes(keyword);
+    const matchCode = opt.code ? opt.code.toLowerCase().includes(keyword) : false;
+    return matchLabel || matchCode;
   });
+
+  if (filteredOptions.length === 0) {
+    itemListEl.innerHTML = `<li class="no-data">查無資料</li>`;
+    return;
+  }
+
+  filteredOptions.forEach(opt => {
+    const li = document.createElement('li');
+    li.className = 'item-node';
+    if (opt.value === selectedItem) li.classList.add('active');
+
+    li.innerHTML = `
+      <span class="item-name">${opt.label}</span>
+      ${opt.code ? `<span class="item-code">${opt.code}</span>` : ''}
+    `;
+
+    li.addEventListener('click', () => {
+      selectedItem = opt.value;
+      document.querySelectorAll('.item-node').forEach(el => el.classList.remove('active'));
+      li.classList.add('active');
+      renderSchedule();
+    });
+
+    itemListEl.appendChild(li);
+  });
+
+  // 自動平滑滾動到當前被選中的項目位置
+  const activeLi = itemListEl.querySelector('.item-node.active');
+  if (activeLi) {
+    activeLi.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
 }
 
 function getModeLabel() {
@@ -122,7 +137,7 @@ function getModeLabel() {
   if (currentMode === 'room') return '教室';
 }
 
-// 渲染課表表格
+// 渲染課表
 function renderSchedule() {
   const titleEl = document.getElementById('current-title');
   const tbody = document.getElementById('schedule-body');
@@ -191,16 +206,18 @@ function renderSchedule() {
   }
 }
 
-// 點擊課表內連結跳轉
+// 關鍵修復：點擊課表內底線超連結切換與選單連動
 function jumpTo(mode, target) {
   currentMode = mode;
   selectedItem = target;
   
+  // 更新頁籤按鈕狀態
   document.querySelectorAll('.tab-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.mode === mode);
   });
 
-  inputEl.value = target;
-  populateSelect();
+  // 清空搜尋關鍵字並重新渲染選單與課表
+  searchInput.value = '';
+  renderList();
   renderSchedule();
 }
