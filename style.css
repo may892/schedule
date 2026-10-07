@@ -1,34 +1,97 @@
-/* 左右配置版面 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  background-color: #f8fafc;
+  color: #1e293b;
+  padding: 24px;
+}
+
+.app-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* 頁首 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.info-stats {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* 左右主配置 */
 .main-layout {
   display: flex;
   gap: 20px;
   align-items: flex-start;
 }
 
-/* 左側卡片樣式 */
-.sidebar-card {
-  width: 260px;
-  min-width: 260px;
+/* 左側欄位容器 */
+.sidebar {
+  width: 280px;
+  min-width: 280px;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 16px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-/* 搜尋框輸入區域 */
+/* 頂部頁籤鈕 */
+.tab-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tab-btn {
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  color: #64748b;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  background-color: #1e293b;
+  color: #ffffff;
+  border-color: #1e293b;
+}
+
+/* 搜尋框 */
 .search-box {
   display: flex;
   align-items: center;
   background: #f1f5f9;
   border-radius: 8px;
   padding: 8px 12px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .search-icon {
-  font-size: 14px;
-  margin-right: 8px;
+  font-size: 13px;
+  margin-right: 6px;
   color: #94a3b8;
 }
 
@@ -37,16 +100,14 @@
   background: transparent;
   outline: none;
   width: 100%;
-  font-size: 14px;
+  font-size: 13px;
   color: #334155;
 }
 
-/* 垂直選單清單 */
+/* 選單列表 */
 .item-list {
   list-style: none;
-  padding: 0;
-  margin: 0;
-  max-height: 520px;
+  max-height: 580px;
   overflow-y: auto;
 }
 
@@ -54,19 +115,20 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
+  padding: 10px 12px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   color: #334155;
-  transition: all 0.2s;
+  margin-bottom: 2px;
+  transition: background 0.15s;
 }
 
 .item-node:hover {
-  background-color: #f8fafc;
+  background-color: #f1f5f9;
 }
 
-/* 被選中的黑色高亮卡片（對齊圖片樣式） */
+/* 被選中的項目卡片 */
 .item-node.active {
   background-color: #1e293b;
   color: #ffffff;
@@ -85,10 +147,93 @@
   padding: 20px;
   text-align: center;
   color: #94a3b8;
-  font-size: 14px;
+  font-size: 13px;
 }
 
-/* 調整右側課表區寬度 */
+/* 右側內容區 */
 .content {
   flex: 1;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.content-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #0f172a;
+}
+
+/* 課表表格 */
+.table-scroll-container {
+  overflow-x: auto;
+}
+
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+.schedule-table th, 
+.schedule-table td {
+  border: 1px solid #e2e8f0;
+  padding: 10px;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.schedule-table th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+}
+
+.col-period {
+  width: 90px;
+  background-color: #f8fafc;
+  color: #64748b;
+}
+
+/* 課表內部卡片與點擊超連結 */
+.cell-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cell-subject {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.cell-teachers {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* 底部底線超連結 */
+.cell-link {
+  color: #2563eb;
+  text-decoration: underline;
+  cursor: pointer;
+  margin: 0 2px;
+}
+
+.cell-link:hover {
+  color: #1d4ed8;
+}
+
+.footer-note {
+  margin-top: 16px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.highlight {
+  color: #2563eb;
+  font-weight: 500;
 }
