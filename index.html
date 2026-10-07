@@ -3,23 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>學校課表查詢系統</title>
-  <!-- 引入 Select2 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=3">
+  <title>課表查詢系統</title>
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
   <div class="app-container">
-    <!-- 頂部標頭 -->
+    <!-- 頂部標頭-->
     <header class="header">
       <div class="logo-title">
-        <span class="badge">HLHS</span>
         <h1>課表查詢系統</h1>
       </div>
       <div class="info-stats" id="stats-info">載入中...</div>
     </header>
 
-    <!-- 頂部控制面板 (Tab + 下拉選單) -->
+    <!-- 頂部頁籤列 -->
     <div class="control-panel">
       <nav class="tab-bar">
         <button class="tab-btn active" data-mode="high">高中班級</button>
@@ -27,48 +24,52 @@
         <button class="tab-btn" data-mode="teacher">依教師</button>
         <button class="tab-btn" data-mode="room">依教室</button>
       </nav>
-
-      <div class="select-wrapper">
-        <select id="item-select" class="dropdown-select">
-          <option value="">-- 請選擇 --</option>
-        </select>
-      </div>
     </div>
 
-    <!-- 課表內容區 -->
-    <main class="content">
-      <div class="content-header">
-        <h2 id="current-title">請選擇查詢項目</h2>
-      </div>
+    <!-- 主要內容區：左右兩欄 -->
+    <div class="main-layout">
+      <!-- 左側搜尋與選單清單卡片 -->
+      <aside class="sidebar-card">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" placeholder="搜尋姓名或代碼..." autocomplete="off">
+        </div>
+        <ul id="item-list" class="item-list">
+          <!-- 由 JS 動態生成 -->
+        </ul>
+      </aside>
 
-      <div class="table-scroll-container">
-        <table class="schedule-table">
-          <thead>
-            <tr>
-              <th class="col-period">節次</th>
-              <th>週一</th>
-              <th>週二</th>
-              <th>週三</th>
-              <th>週四</th>
-              <th>週五</th>
-            </tr>
-          </thead>
-          <tbody id="schedule-body">
-            <!-- 動態生成 1~8 節 -->
-          </tbody>
-        </table>
-      </div>
+      <!-- 右側課表內容區 -->
+      <main class="content">
+        <div class="content-header">
+          <h2 id="current-title">請選擇查詢項目</h2>
+        </div>
 
-      <div class="footer-note">
-        💡 點選課表內加底線的<span class="highlight">教師/班級/教室</span>可直接切換查詢
-      </div>
-    </main>
+        <div class="table-scroll-container">
+          <table class="schedule-table">
+            <thead>
+              <tr>
+                <th class="col-period">節次</th>
+                <th>週一</th>
+                <th>週二</th>
+                <th>週三</th>
+                <th>週四</th>
+                <th>週五</th>
+              </tr>
+            </thead>
+            <tbody id="schedule-body">
+              <!-- 動態生成 1~8 節 -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="footer-note">
+          💡 點選課表內加底線的<span class="highlight">教師/班級/教室</span>可直接切換查詢
+        </div>
+      </main>
+    </div>
   </div>
 
-  <!-- 引入 jQuery 與 Select2 JS (讓 #item-select 支援關鍵字搜尋) -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
