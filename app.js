@@ -29,17 +29,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// 輸入關鍵字或獲得焦點時重新展開完整清單
-searchInput.addEventListener('input', () => {
-  renderList(false); // 搜尋時不進入收合模式
-});
-
-searchInput.addEventListener('focus', () => {
-  if (selectedItem) {
-    // 聚焦時若想重新搜尋/挑選，展開全清單
-    renderList(false);
-  }
-});
+// 即時搜尋與點擊搜尋框監聽
+searchInput.addEventListener('input', () => renderList());
+searchInput.addEventListener('focus', () => renderList());
 
 // 統計全校資料
 function updateStats() {
@@ -79,7 +71,7 @@ function getOptions() {
       }
     });
 
-    // 修正排序邏輯：有 order 用 order，沒有 order 則按代碼 (code) 排序
+    // 排序邏輯：有 order 用 order，沒有 order 則按代碼 (code) 排序 (修復 T010001 掉到最後的問題)
     const sortedTeachers = Array.from(teacherMap.values()).sort((a, b) => {
       if (a.order !== null && b.order !== null) {
         return a.order - b.order;
@@ -103,41 +95,12 @@ function getOptions() {
   return [];
 }
 
-/**
- * 渲染選單清單
- * @param {boolean} collapseSelected - 若為 true 且有 selectedItem，則僅顯示選中的那一筆
- */
-function renderList(collapseSelected = true) {
+// 渲染選單清單 (直接顯示可滾動完整清單)
+function renderList() {
   itemListEl.innerHTML = '';
   const options = getOptions();
   const keyword = searchInput.value.trim().toLowerCase();
 
-  // 若處於「已選擇」狀態，且沒有在主動搜尋，則僅渲染該筆資料
-  if (selectedItem && collapseSelected && keyword === '') {
-    const currentOpt = options.find(opt => opt.value === selectedItem);
-    if (currentOpt) {
-      const li = document.createElement('li');
-      li.className = 'item-node active single-selected';
-      li.innerHTML = `
-        <span class="item-name">已選擇：${currentOpt.label}</span>
-        <span class="reset-btn" title="重新選擇">✕ 換一個</span>
-      `;
-      
-      // 點擊「換一個」重置收合狀態並聚焦搜尋框
-      li.querySelector('.reset-btn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        selectedItem = '';
-        renderList(false);
-        renderSchedule();
-        searchInput.focus();
-      });
-
-      itemListEl.appendChild(li);
-      return;
-    }
-  }
-
-  // 完整清單過濾（所有資料均在此，可供完整滾動）
   const filteredOptions = options.filter(opt => {
     const matchLabel = opt.label.toLowerCase().includes(keyword);
     const matchCode = opt.code ? opt.code.toLowerCase().includes(keyword) : false;
@@ -161,13 +124,19 @@ function renderList(collapseSelected = true) {
 
     li.addEventListener('click', () => {
       selectedItem = opt.value;
-      searchInput.value = '';
-      renderList(true); // 選取後收合為單筆顯示
+      document.querySelectorAll('.item-node').forEach(el => el.classList.remove('active'));
+      li.classList.add('active');
       renderSchedule();
     });
 
     itemListEl.appendChild(li);
   });
+
+  // 自動平滑滾動到目前選中的項目
+  const activeLi = itemListEl.querySelector('.item-node.active');
+  if (activeLi) {
+    activeLi.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
 }
 
 function getModeLabel() {
@@ -256,6 +225,6 @@ function jumpTo(mode, target) {
   });
 
   searchInput.value = '';
-  renderList(true); // 跳轉後同樣自動收合為單筆顯示
+  renderList();
   renderSchedule();
 }
