@@ -74,12 +74,22 @@ function getOptions() {
         teacherMap.set(d.teacher_name, {
           name: d.teacher_name,
           code: d.teacher_code || '',
-          order: d.teacher_order || 999
+          order: d.teacher_order !== undefined ? d.teacher_order : null
         });
       }
     });
 
-    const sortedTeachers = Array.from(teacherMap.values()).sort((a, b) => a.order - b.order);
+    // 修正排序邏輯：有 order 用 order，沒有 order 則按代碼 (code) 排序
+    const sortedTeachers = Array.from(teacherMap.values()).sort((a, b) => {
+      if (a.order !== null && b.order !== null) {
+        return a.order - b.order;
+      }
+      if (a.code && b.code) {
+        return a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: 'base' });
+      }
+      return a.name.localeCompare(b.name, 'zh-TW');
+    });
+
     return sortedTeachers.map(t => ({
       label: t.name,
       value: t.name,
