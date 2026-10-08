@@ -29,9 +29,16 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// 即時搜尋監聽
+// 輸入關鍵字或獲得焦點時重新展開完整清單
 searchInput.addEventListener('input', () => {
-  renderList();
+  renderList(false); // 搜尋時不進入收合模式
+});
+
+searchInput.addEventListener('focus', () => {
+  if (selectedItem) {
+    // 聚焦時若想重新搜尋/挑選，展開全清單
+    renderList(false);
+  }
 });
 
 // 統計全校資料
@@ -86,13 +93,42 @@ function getOptions() {
   return [];
 }
 
-// 渲染選單（限制顯示長度，防止手機版過長）
-function renderList() {
+/**
+ * 渲染選單清單
+ * @param {boolean} collapseSelected - 若為 true 且有 selectedItem，則僅顯示選中的那一筆
+ */
+function renderList(collapseSelected = true) {
   itemListEl.innerHTML = '';
   const options = getOptions();
   const keyword = searchInput.value.trim().toLowerCase();
 
-  let filteredOptions = options.filter(opt => {
+  // 若處於「已選擇」狀態，且沒有在主動搜尋，則僅渲染該筆資料
+  if (selectedItem && collapseSelected && keyword === '') {
+    const currentOpt = options.find(opt => opt.value === selectedItem);
+    if (currentOpt) {
+      const li = document.createElement('li');
+      li.className = 'item-node active single-selected';
+      li.innerHTML = `
+        <span class="item-name">已選擇：${currentOpt.label}</span>
+        <span class="reset-btn" title="重新選擇">✕ 換一個</span>
+      `;
+      
+      // 點擊「換一個」重置收合狀態並聚焦搜尋框
+      li.querySelector('.reset-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectedItem = '';
+        renderList(false);
+        renderSchedule();
+        searchInput.focus();
+      });
+
+      itemListEl.appendChild(li);
+      return;
+    }
+  }
+
+  // 完整清單過濾（所有資料均在此，可供完整滾動）
+  const filteredOptions = options.filter(opt => {
     const matchLabel = opt.label.toLowerCase().includes(keyword);
     const matchCode = opt.code ? opt.code.toLowerCase().includes(keyword) : false;
     return matchLabel || matchCode;
@@ -101,12 +137,6 @@ function renderList() {
   if (filteredOptions.length === 0) {
     itemListEl.innerHTML = `<li class="no-data">查無資料</li>`;
     return;
-  }
-
-  // 若未輸入搜尋關鍵字，最多僅顯示前 5 筆（如已有選中項則保留顯示）
-  const isMobile = window.innerWidth <= 768;
-  if (keyword === '' && isMobile) {
-    filteredOptions = filteredOptions.slice(0, 5);
   }
 
   filteredOptions.forEach(opt => {
@@ -121,8 +151,8 @@ function renderList() {
 
     li.addEventListener('click', () => {
       selectedItem = opt.value;
-      document.querySelectorAll('.item-node').forEach(el => el.classList.remove('active'));
-      li.classList.add('active');
+      searchInput.value = '';
+      renderList(true); // 選取後收合為單筆顯示
       renderSchedule();
     });
 
@@ -206,7 +236,7 @@ function renderSchedule() {
   }
 }
 
-// 超連結跳轉連動
+// 課表內超連結跳轉連動
 function jumpTo(mode, target) {
   currentMode = mode;
   selectedItem = target;
@@ -216,6 +246,6 @@ function jumpTo(mode, target) {
   });
 
   searchInput.value = '';
-  renderList();
+  renderList(true); // 跳轉後同樣自動收合為單筆顯示
   renderSchedule();
 }
