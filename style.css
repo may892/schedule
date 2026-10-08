@@ -8,7 +8,7 @@
 body {
   background-color: #f8fafc;
   color: #1e293b;
-  padding: 24px;
+  padding: 16px;
 }
 
 .app-container {
@@ -21,56 +21,55 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .header h1 {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   color: #0f172a;
 }
 
 .info-stats {
-  font-size: 13px;
+  font-size: 12px;
   color: #64748b;
 }
 
-/* 左右主配置 */
+/* 桌面版版面：左右 */
 .main-layout {
   display: flex;
-  gap: 20px;
+  gap: 16px;
   align-items: flex-start;
 }
 
-/* 左側欄位容器 */
+/* 側邊/上方欄 */
 .sidebar {
   width: 280px;
   min-width: 280px;
   background: #ffffff;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
-  padding: 16px;
+  padding: 12px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-/* 頂部頁籤鈕 */
 .tab-bar {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 12px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-bottom: 10px;
 }
 
 .tab-btn {
-  padding: 8px 10px;
-  font-size: 13px;
+  padding: 8px 4px;
+  font-size: 12px;
   font-weight: 500;
   border: 1px solid #e2e8f0;
   background-color: #f8fafc;
   color: #64748b;
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s;
+  text-align: center;
 }
 
 .tab-btn.active {
@@ -79,18 +78,17 @@ body {
   border-color: #1e293b;
 }
 
-/* 搜尋框 */
 .search-box {
   display: flex;
   align-items: center;
   background: #f1f5f9;
   border-radius: 8px;
-  padding: 8px 12px;
-  margin-bottom: 12px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
 }
 
 .search-icon {
-  font-size: 13px;
+  font-size: 12px;
   margin-right: 6px;
   color: #94a3b8;
 }
@@ -104,10 +102,9 @@ body {
   color: #334155;
 }
 
-/* 選單列表 */
 .item-list {
   list-style: none;
-  max-height: 580px;
+  max-height: 480px;
   overflow-y: auto;
 }
 
@@ -115,27 +112,25 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
-  border-radius: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   color: #334155;
   margin-bottom: 2px;
-  transition: background 0.15s;
 }
 
 .item-node:hover {
   background-color: #f1f5f9;
 }
 
-/* 被選中的項目卡片 */
 .item-node.active {
   background-color: #1e293b;
   color: #ffffff;
 }
 
 .item-code {
-  font-size: 12px;
+  font-size: 11px;
   color: #94a3b8;
 }
 
@@ -144,46 +139,48 @@ body {
 }
 
 .no-data {
-  padding: 20px;
+  padding: 12px;
   text-align: center;
   color: #94a3b8;
-  font-size: 13px;
+  font-size: 12px;
 }
 
-/* 右側內容區 */
+/* 內容區 */
 .content {
   flex: 1;
   background: #ffffff;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
-  padding: 20px;
+  padding: 16px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  width: 100%;
 }
 
 .content-header h2 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   color: #0f172a;
 }
 
-/* 課表表格 */
 .table-scroll-container {
-  overflow-x: auto;
+  width: 100%;
 }
 
 .schedule-table {
   width: 100%;
   border-collapse: collapse;
   text-align: center;
+  table-layout: fixed; /* 固定欄寬防止撐開 */
 }
 
 .schedule-table th, 
 .schedule-table td {
   border: 1px solid #e2e8f0;
-  padding: 10px;
-  font-size: 13px;
+  padding: 6px 2px;
+  font-size: 12px;
   vertical-align: middle;
+  word-break: break-all;
 }
 
 .schedule-table th {
@@ -193,47 +190,83 @@ body {
 }
 
 .col-period {
-  width: 90px;
+  width: 32px; /* 縮減節次欄位寬度 */
   background-color: #f8fafc;
   color: #64748b;
 }
 
-/* 課表內部卡片與點擊超連結 */
 .cell-box {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .cell-subject {
   font-weight: 600;
+  font-size: 11px;
   color: #0f172a;
+  line-height: 1.2;
 }
 
 .cell-teachers {
-  font-size: 12px;
+  font-size: 10px;
   color: #64748b;
+  line-height: 1.2;
 }
 
-/* 底部底線超連結 */
 .cell-link {
   color: #2563eb;
   text-decoration: underline;
   cursor: pointer;
-  margin: 0 2px;
-}
-
-.cell-link:hover {
-  color: #1d4ed8;
 }
 
 .footer-note {
-  margin-top: 16px;
-  font-size: 12px;
+  margin-top: 12px;
+  font-size: 11px;
   color: #64748b;
 }
 
 .highlight {
   color: #2563eb;
   font-weight: 500;
+}
+
+/* 📱 手機版專屬優化 (螢幕寬度 768px 以下) */
+@media (max-width: 768px) {
+  body {
+    padding: 8px;
+  }
+
+  .main-layout {
+    flex-direction: column; /* 上下直向排列 */
+    gap: 12px;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .item-list {
+    max-height: 180px; /* 手機版限縮選單高度 */
+  }
+
+  .content {
+    padding: 10px;
+  }
+
+  /* 課表緊湊調整，免左右滑動 */
+  .schedule-table th, 
+  .schedule-table td {
+    padding: 4px 1px;
+    font-size: 11px;
+  }
+
+  .cell-subject {
+    font-size: 10px;
+  }
+
+  .cell-teachers {
+    font-size: 9px;
+  }
 }
