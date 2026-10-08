@@ -4,6 +4,7 @@ let selectedItem = '';
 
 const searchInput = document.getElementById('search-input');
 const itemListEl = document.getElementById('item-list');
+const sidebarEl = document.querySelector('.sidebar');
 
 // 初始化
 fetch('schedule.json?v=3')
@@ -24,14 +25,36 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     searchInput.value = '';
     searchInput.placeholder = `搜尋${getModeLabel()}...`;
 
+    closeDropdown();
     renderList();
     renderSchedule();
   });
 });
 
-// 即時搜尋與點擊搜尋框監聽
-searchInput.addEventListener('input', () => renderList());
-searchInput.addEventListener('focus', () => renderList());
+// 點擊/聚焦搜尋框時：展開下拉選單
+searchInput.addEventListener('focus', () => {
+  openDropdown();
+});
+
+searchInput.addEventListener('input', () => {
+  openDropdown();
+  renderList();
+});
+
+// 點擊頁面其他空白處時自動收合選單
+document.addEventListener('click', (e) => {
+  if (!sidebarEl.contains(e.target)) {
+    closeDropdown();
+  }
+});
+
+function openDropdown() {
+  itemListEl.classList.add('expanded');
+}
+
+function closeDropdown() {
+  itemListEl.classList.remove('expanded');
+}
 
 // 統計全校資料
 function updateStats() {
@@ -51,7 +74,7 @@ function sortClassNames(classList) {
   });
 }
 
-// 取得當前模式的選項
+// 取得當前模式選項
 function getOptions() {
   if (currentMode === 'high') {
     const set = new Set(rawData.filter(d => d.class_name && d.class_name.startsWith('高')).map(d => d.class_name));
@@ -71,14 +94,9 @@ function getOptions() {
       }
     });
 
-    // 排序邏輯：有 order 用 order，沒有 order 則按代碼 (code) 排序 (修復 T010001 掉到最後的問題)
     const sortedTeachers = Array.from(teacherMap.values()).sort((a, b) => {
-      if (a.order !== null && b.order !== null) {
-        return a.order - b.order;
-      }
-      if (a.code && b.code) {
-        return a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: 'base' });
-      }
+      if (a.order !== null && b.order !== null) return a.order - b.order;
+      if (a.code && b.code) return a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: 'base' });
       return a.name.localeCompare(b.name, 'zh-TW');
     });
 
@@ -95,7 +113,7 @@ function getOptions() {
   return [];
 }
 
-// 渲染選單清單 (直接顯示可滾動完整清單)
+// 渲染選單
 function renderList() {
   itemListEl.innerHTML = '';
   const options = getOptions();
@@ -126,13 +144,15 @@ function renderList() {
       selectedItem = opt.value;
       document.querySelectorAll('.item-node').forEach(el => el.classList.remove('active'));
       li.classList.add('active');
+      
+      closeDropdown(); // 選取後自動收合
       renderSchedule();
     });
 
     itemListEl.appendChild(li);
   });
 
-  // 自動平滑滾動到目前選中的項目
+  // 自動平滑滾動至已選取項目
   const activeLi = itemListEl.querySelector('.item-node.active');
   if (activeLi) {
     activeLi.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -167,7 +187,7 @@ function renderSchedule() {
 
   for (let period = 1; period <= 8; period++) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td class="col-period">${period}</td>`;
+    tr.innerHTML = `<td class="col-period">第 ${period} 節</td>`;
 
     for (let day = 1; day <= 5; day++) {
       const matches = filtered.filter(d => d.day === day && d.period === period);
@@ -225,6 +245,7 @@ function jumpTo(mode, target) {
   });
 
   searchInput.value = '';
+  closeDropdown();
   renderList();
   renderSchedule();
 }
