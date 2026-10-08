@@ -35,14 +35,13 @@ body {
   color: #64748b;
 }
 
-/* 主版面配置 */
+/* 版面配置 */
 .main-layout {
   display: flex;
   gap: 20px;
   align-items: flex-start;
 }
 
-/* 側邊 / 搜尋選單區 */
 .sidebar {
   width: 280px;
   min-width: 280px;
@@ -52,6 +51,7 @@ body {
   padding: 16px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   position: relative;
+  z-index: 100; /* 確保選單浮在課表上方 */
 }
 
 .tab-bar {
@@ -87,7 +87,6 @@ body {
   padding: 8px 12px;
   margin-bottom: 8px;
   border: 1px solid transparent;
-  transition: border-color 0.2s;
 }
 
 .search-box:focus-within {
@@ -110,23 +109,25 @@ body {
   color: #334155;
 }
 
-/* 🎯 預設只佔 1 筆高度 (約 38px) */
+/* 🎯 選單預設：只呈現 1 行高度 (38px) */
 .item-list {
   list-style: none;
   max-height: 38px;
-  overflow-y: hidden;
+  overflow: hidden;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   background: #ffffff;
-  transition: all 0.25s ease-in-out;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-/* 🎯 點擊/搜尋時展開成下拉選單：高能容納 6 筆以上 (約 240px)，出現滾動條 */
+/* 🎯 展開時：浮動下拉顯示 6 筆以上高度 (230px)，可滑動 */
 .item-list.expanded {
-  max-height: 240px;
+  max-height: 230px;
   overflow-y: auto;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border-color: #cbd5e1;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border-color: #94a3b8;
+  -webkit-overflow-scrolling: touch; /* 改善 iOS 手機滑動順暢度 */
 }
 
 .item-node {
@@ -138,7 +139,7 @@ body {
   font-size: 13px;
   color: #334155;
   border-bottom: 1px solid #f1f5f9;
-  height: 38px;
+  min-height: 38px;
 }
 
 .item-node:last-child {
@@ -170,7 +171,7 @@ body {
   font-size: 12px;
 }
 
-/* 🖥️ 網頁版內容區：放大課表字體 */
+/* 🖥️ 網頁版內容區 */
 .content {
   flex: 1;
   background: #ffffff;
@@ -199,7 +200,6 @@ body {
   text-align: center;
 }
 
-/* 網頁版表格儲存格適當放大 */
 .schedule-table th, 
 .schedule-table td {
   border: 1px solid #e2e8f0;
@@ -228,7 +228,6 @@ body {
   gap: 4px;
 }
 
-/* 網頁版科目名稱大小 */
 .cell-subject {
   font-weight: 600;
   font-size: 14px;
@@ -236,7 +235,6 @@ body {
   line-height: 1.3;
 }
 
-/* 網頁版教師/教室連結大小 */
 .cell-teachers {
   font-size: 12px;
   color: #64748b;
@@ -247,10 +245,6 @@ body {
   color: #2563eb;
   text-decoration: underline;
   cursor: pointer;
-}
-
-.cell-link:hover {
-  color: #1d4ed8;
 }
 
 .footer-note {
@@ -264,7 +258,7 @@ body {
   font-weight: 500;
 }
 
-/* 📱 手機版 RWD (寬度 768px 以下自動切換為緊湊模式) */
+/* 📱 手機版 RWD (<= 768px) */
 @media (max-width: 768px) {
   body {
     padding: 8px;
@@ -280,8 +274,13 @@ body {
     min-width: 100%;
   }
 
+  /* 手機版選單展開時的高度與滑動區域 */
+  .item-list.expanded {
+    max-height: 220px; /* 約 6 筆的高度 */
+  }
+
   .content {
-    padding: 12px;
+    padding: 10px;
   }
 
   .schedule-table {
@@ -299,7 +298,7 @@ body {
   }
 
   .cell-subject {
-    font-size: 11px;
+    font-size: 10px;
   }
 
   .cell-teachers {
