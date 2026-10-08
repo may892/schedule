@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>課表查詢系統</title>
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
   <div class="app-container">
-    <!-- 頁首標頭 -->
+    <!-- 頂部標頭 -->
     <header class="header">
       <div class="logo-title">
         <h1>課表查詢系統</h1>
@@ -16,9 +16,9 @@
       <div class="info-stats" id="stats-info">載入中...</div>
     </header>
 
-    <!-- 主體版面：左側搜尋欄 + 右側內容區 -->
+    <!-- 主體版面 -->
     <div class="main-layout">
-      <!-- 左側欄位 -->
+      <!-- 左側/上方 控制選單區 -->
       <aside class="sidebar">
         <!-- 頁籤按鈕 -->
         <nav class="tab-bar">
@@ -34,13 +34,13 @@
           <input type="text" id="search-input" placeholder="搜尋姓名或代碼..." autocomplete="off">
         </div>
 
-        <!-- 垂直滾動選單 -->
+        <!-- 垂直過濾選單 (限制顯示筆數) -->
         <ul id="item-list" class="item-list">
           <!-- 由 JS 動態生成 -->
         </ul>
       </aside>
 
-      <!-- 右側課表區 -->
+      <!-- 右側/下方 課表內容區 -->
       <main class="content">
         <div class="content-header">
           <h2 id="current-title">請選擇查詢項目</h2>
@@ -50,12 +50,12 @@
           <table class="schedule-table">
             <thead>
               <tr>
-                <th class="col-period">節次</th>
-                <th>週一</th>
-                <th>週二</th>
-                <th>週三</th>
-                <th>週四</th>
-                <th>週五</th>
+                <th class="col-period">節</th>
+                <th>一</th>
+                <th>二</th>
+                <th>三</th>
+                <th>四</th>
+                <th>五</th>
               </tr>
             </thead>
             <tbody id="schedule-body">
@@ -65,12 +65,12 @@
         </div>
 
         <div class="footer-note">
-          💡 點選課表內加底線的<span class="highlight">教師/班級/教室</span>可直接切換查詢
+          💡 點選課表內加底線的<span class="highlight">教師/班級/教室</span>可切換查詢
         </div>
       </main>
     </div>
   </div>
 
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
