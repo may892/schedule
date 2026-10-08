@@ -51,7 +51,7 @@ body {
   padding: 16px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   position: relative;
-  z-index: 100; /* 確保選單浮在課表上方 */
+  z-index: 100;
 }
 
 .tab-bar {
@@ -85,7 +85,7 @@ body {
   background: #f1f5f9;
   border-radius: 8px;
   padding: 8px 12px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   border: 1px solid transparent;
 }
 
@@ -109,37 +109,80 @@ body {
   color: #334155;
 }
 
-/* 🎯 選單預設：只呈現 1 行高度 (38px) */
+/* 🎯 下拉選單外層容器 */
+.select-dropdown-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* 🎯 未展開狀態：只佔用 1 筆資料的高度 (40px) */
 .item-list {
   list-style: none;
-  max-height: 38px;
+  height: 40px;
   overflow: hidden;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
   background: #ffffff;
   cursor: pointer;
   transition: all 0.2s ease;
+  position: relative;
 }
 
-/* 🎯 展開時：浮動下拉顯示 6 筆以上高度 (230px)，可滑動 */
+/* 下拉選單小箭頭圖示 */
+.item-list::after {
+  content: "▼";
+  font-size: 10px;
+  color: #64748b;
+  position: absolute;
+  right: 12px;
+  top: 14px;
+  pointer-events: none;
+}
+
+/* 🎯 未展開時：只顯示當前選中的 active 那一筆 */
+.item-list:not(.expanded) .item-node {
+  display: none;
+}
+
+.item-list:not(.expanded) .item-node.active {
+  display: flex;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* 🎯 點擊/聚焦展開時：變為懸浮選單，高能容納 6 筆以上 (240px)，滑動順暢 */
 .item-list.expanded {
-  max-height: 230px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: auto;
+  max-height: 240px; /* 約 6 筆以上高度 */
   overflow-y: auto;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  border-color: #94a3b8;
-  -webkit-overflow-scrolling: touch; /* 改善 iOS 手機滑動順暢度 */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border-color: #3b82f6;
+  z-index: 999;
+  -webkit-overflow-scrolling: touch;
+}
+
+.item-list.expanded::after {
+  display: none; /* 展開時隱藏小箭頭 */
+}
+
+.item-list.expanded .item-node {
+  display: flex;
 }
 
 .item-node {
-  display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
+  padding: 10px 12px;
   cursor: pointer;
   font-size: 13px;
   color: #334155;
   border-bottom: 1px solid #f1f5f9;
-  min-height: 38px;
+  height: 40px;
 }
 
 .item-node:last-child {
@@ -147,10 +190,10 @@ body {
 }
 
 .item-node:hover {
-  background-color: #f8fafc;
+  background-color: #f1f5f9;
 }
 
-.item-node.active {
+.item-list.expanded .item-node.active {
   background-color: #1e293b;
   color: #ffffff;
 }
@@ -165,13 +208,13 @@ body {
 }
 
 .no-data {
-  padding: 10px;
+  padding: 12px;
   text-align: center;
   color: #94a3b8;
   font-size: 12px;
 }
 
-/* 🖥️ 網頁版內容區 */
+/* 🖥️ 網頁版內容區：大字體適應大螢幕 */
 .content {
   flex: 1;
   background: #ffffff;
@@ -247,6 +290,10 @@ body {
   cursor: pointer;
 }
 
+.cell-link:hover {
+  color: #1d4ed8;
+}
+
 .footer-note {
   margin-top: 18px;
   font-size: 13px;
@@ -272,11 +319,6 @@ body {
   .sidebar {
     width: 100%;
     min-width: 100%;
-  }
-
-  /* 手機版選單展開時的高度與滑動區域 */
-  .item-list.expanded {
-    max-height: 220px; /* 約 6 筆的高度 */
   }
 
   .content {
