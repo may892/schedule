@@ -31,17 +31,22 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// 點擊/聚焦搜尋框時：展開下拉選單
-searchInput.addEventListener('focus', () => {
-  openDropdown();
-});
-
+// 點擊/聚焦搜尋框時：開啟選單
+searchInput.addEventListener('focus', openDropdown);
+searchInput.addEventListener('click', openDropdown);
 searchInput.addEventListener('input', () => {
   openDropdown();
   renderList();
 });
 
-// 點擊頁面其他空白處時自動收合選單
+// 點擊點選清單區域（若收合時點擊可展開）
+itemListEl.addEventListener('click', (e) => {
+  if (!itemListEl.classList.contains('expanded')) {
+    openDropdown();
+  }
+});
+
+// 點擊頁面其他空白處自動收合
 document.addEventListener('click', (e) => {
   if (!sidebarEl.contains(e.target)) {
     closeDropdown();
@@ -140,19 +145,19 @@ function renderList() {
       ${opt.code ? `<span class="item-code">${opt.code}</span>` : ''}
     `;
 
-    li.addEventListener('click', () => {
+    li.addEventListener('click', (e) => {
+      e.stopPropagation(); // 阻止事件向上傳遞
       selectedItem = opt.value;
       document.querySelectorAll('.item-node').forEach(el => el.classList.remove('active'));
       li.classList.add('active');
       
-      closeDropdown(); // 選取後自動收合
+      closeDropdown();
       renderSchedule();
     });
 
     itemListEl.appendChild(li);
   });
 
-  // 自動平滑滾動至已選取項目
   const activeLi = itemListEl.querySelector('.item-node.active');
   if (activeLi) {
     activeLi.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -235,7 +240,7 @@ function renderSchedule() {
   }
 }
 
-// 課表內超連結跳轉連動
+// 課表超連結跳轉
 function jumpTo(mode, target) {
   currentMode = mode;
   selectedItem = target;
