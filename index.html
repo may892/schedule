@@ -2,75 +2,112 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>課表查詢系統</title>
-  <link rel="stylesheet" href="style.css?v=7">
+  <style>
+    .select-container {
+      width: 250px;
+      font-family: sans-serif;
+      position: relative;
+    }
+
+    /* 1. 選中後顯示的框框（選完後畫面上只留這一筆） */
+    .selected-box {
+      padding: 10px 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background-color: #fff;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* 2. 下拉選單清單 */
+    .options-list {
+      display: none; /* 預設隱藏，點擊後展開 */
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background-color: #fff;
+      margin-top: 4px;
+      padding: 0;
+      list-style: none;
+      
+      /* ★ 核心設定：限制一次只顯示約 4 筆的高度，其餘靠滾動 */
+      max-height: 160px; /* 每筆約 40px，160px 約顯示 4 筆 */
+      overflow-y: auto;  /* 超過高度自動出現垂直滾動條 */
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 10;
+    }
+
+    /* 顯示選單狀態 */
+    .options-list.show {
+      display: block;
+    }
+
+    .option-item {
+      padding: 10px 15px;
+      cursor: pointer;
+    }
+
+    .option-item:hover {
+      background-color: #f0f0f0;
+    }
+  </style>
 </head>
 <body>
-  <div class="app-container">
-    <!-- 頂部標頭 -->
-    <header class="header">
-      <div class="logo-title">
-        <h1>課表查詢系統</h1>
-      </div>
-      <div class="info-stats" id="stats-info">載入中...</div>
-    </header>
 
-    <!-- 主體版面 -->
-    <div class="main-layout">
-      <!-- 左側/上方 控制選單區 -->
-      <aside class="sidebar">
-        <!-- 頁籤按鈕 -->
-        <nav class="tab-bar">
-          <button class="tab-btn active" data-mode="high">高中班級</button>
-          <button class="tab-btn" data-mode="junior">國中班級</button>
-          <button class="tab-btn" data-mode="teacher">依教師</button>
-          <button class="tab-btn" data-mode="room">依教室</button>
-        </nav>
-
-        <!-- 搜尋輸入框 -->
-        <div class="search-box">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="search-input" placeholder="搜尋姓名或代碼..." autocomplete="off">
-        </div>
-
-        <!-- 垂直過濾選單 (限制顯示筆數) -->
-        <ul id="item-list" class="item-list">
-          <!-- 由 JS 動態生成 -->
-        </ul>
-      </aside>
-
-      <!-- 右側/下方 課表內容區 -->
-      <main class="content">
-        <div class="content-header">
-          <h2 id="current-title">請選擇查詢項目</h2>
-        </div>
-
-        <div class="table-scroll-container">
-          <table class="schedule-table">
-            <thead>
-              <tr>
-                <th class="col-period">節</th>
-                <th>一</th>
-                <th>二</th>
-                <th>三</th>
-                <th>四</th>
-                <th>五</th>
-              </tr>
-            </thead>
-            <tbody id="schedule-body">
-              <!-- 動態生成 1~8 節 -->
-            </tbody>
-          </table>
-        </div>
-
-        <div class="footer-note">
-          💡 點選課表內加底線的<span class="highlight">教師/班級/教室</span>可切換查詢
-        </div>
-      </main>
+  <div class="select-container">
+    <!-- 畫面上最終只留選中的這一筆 -->
+    <div class="selected-box" id="selectedBox">
+      <span id="selectedText">請選擇班級或教師</span>
+      <small>▼</small>
     </div>
+
+    <!-- 可滾動的下拉清單 -->
+    <ul class="options-list" id="optionsList">
+      <li class="option-item" data-value="1">一年一班 - 王老師</li>
+      <li class="option-item" data-value="2">一年二班 - 李老師</li>
+      <li class="option-item" data-value="3">二年一班 - 張老師</li>
+      <li class="option-item" data-value="4">二年二班 - 陳老師</li>
+      <li class="option-item" data-value="5">三年一班 - 林老師</li>
+      <li class="option-item" data-value="6">三年二班 - 黃老師</li>
+      <li class="option-item" data-value="7">四年一班 - 吳老師</li>
+      <li class="option-item" data-value="8">四年二班 - 劉老師</li>
+    </ul>
   </div>
 
-  <script src="app.js?v=7"></script>
+  <script>
+    const selectedBox = document.getElementById('selectedBox');
+    const selectedText = document.getElementById('selectedText');
+    const optionsList = document.getElementById('optionsList');
+    const optionItems = document.querySelectorAll('.option-item');
+
+    // 點擊框框時，切換展開/收合下拉選單
+    selectedBox.addEventListener('click', () => {
+      optionsList.classList.toggle('show');
+    });
+
+    // 點擊選擇某一筆資料時
+    optionItems.forEach(item => {
+      item.addEventListener('click', () => {
+        // 1. 將選中的文字替換到顯示框中
+        selectedText.textContent = item.textContent;
+        
+        // 2. 自動收合清單（畫面上就只會留下被選中的那一筆）
+        optionsList.classList.remove('show');
+      });
+    });
+
+    // 點擊空白處自動收合
+    document.addEventListener('click', (e) => {
+      if (!selectedBox.contains(e.target) && !optionsList.contains(e.target)) {
+        optionsList.classList.remove('show');
+      }
+    });
+  </script>
+
 </body>
 </html>
