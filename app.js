@@ -86,13 +86,13 @@ function getOptions() {
   return [];
 }
 
-// 渲染左側選單
+// 渲染選單（限制顯示長度，防止手機版過長）
 function renderList() {
   itemListEl.innerHTML = '';
   const options = getOptions();
   const keyword = searchInput.value.trim().toLowerCase();
 
-  const filteredOptions = options.filter(opt => {
+  let filteredOptions = options.filter(opt => {
     const matchLabel = opt.label.toLowerCase().includes(keyword);
     const matchCode = opt.code ? opt.code.toLowerCase().includes(keyword) : false;
     return matchLabel || matchCode;
@@ -101,6 +101,12 @@ function renderList() {
   if (filteredOptions.length === 0) {
     itemListEl.innerHTML = `<li class="no-data">查無資料</li>`;
     return;
+  }
+
+  // 若未輸入搜尋關鍵字，最多僅顯示前 5 筆（如已有選中項則保留顯示）
+  const isMobile = window.innerWidth <= 768;
+  if (keyword === '' && isMobile) {
+    filteredOptions = filteredOptions.slice(0, 5);
   }
 
   filteredOptions.forEach(opt => {
@@ -122,12 +128,6 @@ function renderList() {
 
     itemListEl.appendChild(li);
   });
-
-  // 自動平滑滾動到當前被選中的項目位置
-  const activeLi = itemListEl.querySelector('.item-node.active');
-  if (activeLi) {
-    activeLi.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }
 }
 
 function getModeLabel() {
@@ -158,7 +158,7 @@ function renderSchedule() {
 
   for (let period = 1; period <= 8; period++) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td class="col-period">第 ${period} 節</td>`;
+    tr.innerHTML = `<td class="col-period">${period}</td>`;
 
     for (let day = 1; day <= 5; day++) {
       const matches = filtered.filter(d => d.day === day && d.period === period);
@@ -206,17 +206,15 @@ function renderSchedule() {
   }
 }
 
-// 關鍵修復：點擊課表內底線超連結切換與選單連動
+// 超連結跳轉連動
 function jumpTo(mode, target) {
   currentMode = mode;
   selectedItem = target;
   
-  // 更新頁籤按鈕狀態
   document.querySelectorAll('.tab-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.mode === mode);
   });
 
-  // 清空搜尋關鍵字並重新渲染選單與課表
   searchInput.value = '';
   renderList();
   renderSchedule();
