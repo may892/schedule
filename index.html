@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>課表查詢系統</title>
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
   <div class="app-container">
@@ -31,13 +31,15 @@
         <!-- 搜尋輸入框 -->
         <div class="search-box">
           <span class="search-icon">🔍</span>
-          <input type="text" id="search-input" placeholder="搜尋姓名或代碼..." autocomplete="off">
+          <input type="text" id="search-input" placeholder="搜尋高中班級..." autocomplete="off">
         </div>
 
-        <!-- 垂直過濾選單 (限制顯示筆數) -->
-        <ul id="item-list" class="item-list">
-          <!-- 由 JS 動態生成 -->
-        </ul>
+        <!-- 下拉選擇容器 -->
+        <div class="select-dropdown-wrapper">
+          <ul id="item-list" class="item-list">
+            <!-- 由 JS 動態生成 -->
+          </ul>
+        </div>
       </aside>
 
       <!-- 右側/下方 課表內容區 -->
@@ -71,6 +73,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
