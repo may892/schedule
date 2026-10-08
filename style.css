@@ -102,10 +102,12 @@ body {
   color: #334155;
 }
 
+/* 視覺顯示約 4~5 筆高度，但可以完整自由滑動滾動 */
 .item-list {
   list-style: none;
-  max-height: 480px;
+  max-height: 180px; 
   overflow-y: auto;
+  border-radius: 6px;
 }
 
 .item-node {
@@ -127,6 +129,24 @@ body {
 .item-node.active {
   background-color: #1e293b;
   color: #ffffff;
+}
+
+/* 選中後單筆收合樣式 */
+.item-node.single-selected {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+.reset-btn {
+  font-size: 11px;
+  background: rgba(255,255,255,0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.reset-btn:hover {
+  background: rgba(255,255,255,0.35);
 }
 
 .item-code {
@@ -171,7 +191,7 @@ body {
   width: 100%;
   border-collapse: collapse;
   text-align: center;
-  table-layout: fixed; /* 固定欄寬防止撐開 */
+  table-layout: fixed; /* 固定欄寬，完整放進手機 */
 }
 
 .schedule-table th, 
@@ -190,7 +210,7 @@ body {
 }
 
 .col-period {
-  width: 32px; /* 縮減節次欄位寬度 */
+  width: 32px;
   background-color: #f8fafc;
   color: #64748b;
 }
@@ -248,7 +268,7 @@ body {
   }
 
   .item-list {
-    max-height: 180px; /* 手機版限縮選單高度 */
+    max-height: 130px; /* 手機版視覺控制在大約 3~4 筆的高度，其餘滾動顯示 */
   }
 
   .content {
