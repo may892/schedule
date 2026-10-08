@@ -172,6 +172,7 @@ function getModeLabel() {
   if (currentMode === 'room') return '教室';
 }
 
+
 // 渲染課表
 function renderSchedule() {
   const titleEl = document.getElementById('current-title');
@@ -200,9 +201,12 @@ function renderSchedule() {
       const td = document.createElement('td');
 
       if (matches.length > 0 && matches.some(m => m.subject)) {
-        const subject = matches[0].subject;
-        const room = matches.find(m => m.room)?.room || '';
+        
+        // 🎯 修正點：將該節次所有的「科目」整理並去除重複
+        const subjects = Array.from(new Set(matches.map(m => m.subject).filter(Boolean)));
+        const subjectHtml = subjects.join(' / '); // 多門課程用斜線分隔（例：數學 / 英文）
 
+        const room = matches.find(m => m.room)?.room || '';
         const teachers = Array.from(new Set(matches.map(m => m.teacher_name).filter(Boolean)));
         const classes = Array.from(new Set(matches.map(m => m.class_name).filter(Boolean)));
 
@@ -230,7 +234,7 @@ function renderSchedule() {
 
         td.innerHTML = `
           <div class="cell-box">
-            <div class="cell-subject">${subject}</div>
+            <div class="cell-subject">${subjectHtml}</div>
             ${linksHtml}
           </div>
         `;
