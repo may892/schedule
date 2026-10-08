@@ -25,41 +25,26 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     searchInput.value = '';
     searchInput.placeholder = `搜尋${getModeLabel()}...`;
 
-    closeDropdown();
+    itemListEl.classList.remove('expanded');
     renderList();
     renderSchedule();
   });
 });
 
-// 點擊/聚焦搜尋框時：開啟選單
-searchInput.addEventListener('focus', openDropdown);
-searchInput.addEventListener('click', openDropdown);
+// 點擊搜尋框或輸入時展開清單
+searchInput.addEventListener('focus', () => itemListEl.classList.add('expanded'));
+searchInput.addEventListener('click', () => itemListEl.classList.add('expanded'));
 searchInput.addEventListener('input', () => {
-  openDropdown();
+  itemListEl.classList.add('expanded');
   renderList();
 });
 
-// 點擊點選清單區域（若收合時點擊可展開）
-itemListEl.addEventListener('click', (e) => {
-  if (!itemListEl.classList.contains('expanded')) {
-    openDropdown();
-  }
-});
-
-// 點擊頁面其他空白處自動收合
+// 點擊頁面其他地方關閉選單
 document.addEventListener('click', (e) => {
   if (!sidebarEl.contains(e.target)) {
-    closeDropdown();
+    itemListEl.classList.remove('expanded');
   }
 });
-
-function openDropdown() {
-  itemListEl.classList.add('expanded');
-}
-
-function closeDropdown() {
-  itemListEl.classList.remove('expanded');
-}
 
 // 統計全校資料
 function updateStats() {
@@ -135,6 +120,12 @@ function renderList() {
     return;
   }
 
+  // 如果目前沒有選取任何項目，預設選中第一筆
+  if (!selectedItem && filteredOptions.length > 0) {
+    selectedItem = filteredOptions[0].value;
+    renderSchedule();
+  }
+
   filteredOptions.forEach(opt => {
     const li = document.createElement('li');
     li.className = 'item-node';
@@ -145,21 +136,31 @@ function renderList() {
       ${opt.code ? `<span class="item-code">${opt.code}</span>` : ''}
     `;
 
+    // 點擊事件
     li.addEventListener('click', (e) => {
-      e.stopPropagation(); // 阻止事件向上傳遞
+      e.stopPropagation();
+      
+      // 如果目前是收合狀態，點擊則展開選單
+      if (!itemListEl.classList.contains('expanded')) {
+        itemListEl.classList.add('expanded');
+        return;
+      }
+
+      // 如果已經是展開狀態，點擊項目進行選擇並收合
       selectedItem = opt.value;
       document.querySelectorAll('.item-node').forEach(el => el.classList.remove('active'));
       li.classList.add('active');
       
-      closeDropdown();
+      itemListEl.classList.remove('expanded');
       renderSchedule();
     });
 
     itemListEl.appendChild(li);
   });
 
+  // 平滑滾動到當前選項
   const activeLi = itemListEl.querySelector('.item-node.active');
-  if (activeLi) {
+  if (activeLi && itemListEl.classList.contains('expanded')) {
     activeLi.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 }
@@ -250,7 +251,7 @@ function jumpTo(mode, target) {
   });
 
   searchInput.value = '';
-  closeDropdown();
+  itemListEl.classList.remove('expanded');
   renderList();
   renderSchedule();
 }
