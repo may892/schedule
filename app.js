@@ -186,10 +186,11 @@ function renderSchedule() {
 
   titleEl.innerText = `${selectedItem} 的課表`;
 
+  // 1. 根據目前模式過濾資料
   const filtered = rawData.filter(d => {
     if (currentMode === 'high' || currentMode === 'junior') return d.class_name === selectedItem;
     if (currentMode === 'teacher') return d.teacher_name === selectedItem;
-    if (currentMode === 'room') return d.room === selectedItem;
+    if (currentMode === 'room') return d.room === selectedItem; // 🎯 教室模式：精準匹配有指定該教室的資料，排除場地空白或其他教室的記錄
   });
 
   for (let period = 1; period <= 8; period++) {
@@ -202,48 +203,76 @@ function renderSchedule() {
 
       if (matches.length > 0 && matches.some(m => m.subject)) {
         
-        // 🎯 修正點：將該節次所有的「科目」整理並去除重複
-        const subjects = Array.from(new Set(matches.map(m => m.subject).filter(Boolean)));
-        const subjectHtml = subjects.join(' / '); // 多門課程用斜線分隔（例：數學 / 英文）
+        // 🎯 2. 依「課程名稱 (subject)」進行自動分組合併
+        const subjectGroups = new Map();
 
-        const room = matches.find(m => m.room)?.room || '';
-        const teachers = Array.from(new Set(matches.map(m => m.teacher_name).filter(Boolean)));
-        const classes = Array.from(new Set(matches.map(m => m.class_name).filter(Boolean)));
+        matches.forEach(m => {
+          if (!m.subject) return;
+          if (!subjectGroups.has(m.subject)) {
+            subjectGroups.set(m.subject, {
+              teachers: new Set(),
+              classes: new Set(),
+              rooms: new Set()
+            });
+          }
+          const group = subjectGroups.get(m.subject);
+          if (m.teacher_name) group.teachers.add(m.teacher_name);
+          if (m.class_name) group.classes.add(m.class_name);
+          if (m.room) group.rooms.add(m.room);
+        });
 
-        let linksHtml = '';
+        // 🎯 3. 將各課程組合渲染為獨立的區塊（若同一格有不同課程則分開列出）
+        let contentHtml = '';
 
-        if (currentMode === 'high' || currentMode === 'junior') {
-          const tLinks = teachers.map(t => `<span class="cell-link" onclick="jumpTo('teacher', '${t}')">${t}</span>`).join(' ');
-          const rLink = room ? `<span class="cell-link" onclick="jumpTo('room', '${room}')">${room}</span>` : '';
-          linksHtml = `<div class="cell-teachers">${tLinks} ${rLink}</div>`;
-        } else if (currentMode === 'teacher') {
-          const cLinks = classes.map(c => {
-            const targetMode = c.startsWith('國') ? 'junior' : 'high';
-            return `<span class="cell-link" onclick="jumpTo('${targetMode}', '${c}')">${c}</span>`;
-          }).join(' ');
-          const rLink = room ? `<span class="cell-link" onclick="jumpTo('room', '${room}')">${room}</span>` : '';
-          linksHtml = `<div class="cell-teachers">${cLinks} ${rLink}</div>`;
-        } else {
-          const cLinks = classes.map(c => {
-            const targetMode = c.startsWith('國') ? 'junior' : 'high';
-            return `<span class="cell-link" onclick="jumpTo('${targetMode}', '${c}')">${c}</span>`;
-          }).join(' ');
-          const tLinks = teachers.map(t => `<span class="cell-link" onclick="jumpTo('teacher', '${t}')">${t}</span>`).join(' ');
-          linksHtml = `<div class="cell-teachers">${cLinks} ${tLinks}</div>`;
-        }
+        subjectGroups.forEach((group, subjectName) => {
+          const teachersArr = Array.from(group.teachers);
+          const classesArr = Array.from(group.classes);
+          const roomsArr = Array.from(group.rooms);
 
-        td.innerHTML = `
-          <div class="cell-box">
-            <div class="cell-subject">${subjectHtml}</div>
-            ${linksHtml}
-          </div>
-        `;
+          let linksHtml = '';
+
+          if (currentMode === 'high' || currentMode === 'junior') {
+            // 班級課表：顯示教師 + 教室
+            const tLinks = teachersArr.map(t => `<span class="cell-link" onclick="jumpTo('teacher', '${t}')">${t}</span>`).join(' ');
+            const rLink = roomsArr.map(r => `<span class="cell-link" onclick="jumpTo('room', '${r}')">${r}</span>`).join(' ');
+            linksHtml = `<div class="cell-teachers">${tLinks} ${rLink}</div>`;
+
+          } else if (currentMode === 'teacher') {
+            // 教師課表：顯示班級 + 教室
+            const cLinks = classesArr.map(c => {
+              const targetMode = c.startsWith('國') ? 'junior' : 'high';
+              return `<span class="cell-link" onclick="jumpTo('${targetMode}', '${c}')">${c}</span>`;
+            }).join(' / ');
+            const rLink = roomsArr.map(r => `<span class="cell-link" onclick="jumpTo('room', '${r}')">${r}</span>`).join(' ');
+            linksHtml = `<div class="cell-teachers">${cLinks} ${rLink}</div>`;
+
+          } else if (currentMode === 'room') {
+            // 🎯 教室課表：合併顯示班級 (例: 高三丁 H3D / 高三己 H3F) + 教師 (例: 吳榮芳)
+            const cLinks = classesArr.map(c => {
+              const targetMode = c.startsWith('國') ? 'junior' : 'high';
+              return `<span class="cell-link" onclick="jumpTo('${targetMode}', '${c}')">${c}</span>`;
+            }).join(' / ');
+            const tLinks = teachersArr.map(t => `<span class="cell-link" onclick="jumpTo('teacher', '${t}')">${t}</span>`).join(' ');
+            linksHtml = `<div class="cell-teachers">${cLinks}<br>${tLinks}</div>`;
+          }
+
+          contentHtml += `
+            <div class="subject-block" style="margin-bottom: 6px;">
+              <div class="cell-subject">${subjectName}</div>
+              ${linksHtml}
+            </div>
+          `;
+        });
+
+        td.innerHTML = `<div class="cell-box">${contentHtml}</div>`;
       }
+
       tr.appendChild(td);
     }
     tbody.appendChild(tr);
   }
 }
+
 
 // 課表超連結跳轉
 function jumpTo(mode, target) {
